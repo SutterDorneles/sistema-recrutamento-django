@@ -1,28 +1,26 @@
 {% extends 'base.html' %}
 
-{% block title %}Vagas Disponíveis{% endblock %}
+{% block title %}{{ titulo_pagina }}{% endblock %}
 
 {% block content %}
-    <h1>🔍 Vagas Abertas</h1>
+    <!-- Mostra o nome da empresa no título -->
+    <h1>🔍 Vagas Abertas em: {{ empresa.nome }}</h1>
 
-    <!-- Formulário de Busca -->
-    <form method="get" action="{% url 'lista_vagas' %}" class="form-busca">
+    <!-- O formulário de busca agora precisa de saber o ID da empresa -->
+    <form method="get" action="{% url 'lista_vagas' empresa.id %}" class="form-busca">
         <input type="text" name="q" placeholder="Buscar por cargo, tecnologia, etc..." value="{{ request.GET.q }}">
         <button type="submit" class="btn">Buscar</button>
     </form>
 
     <style>
-        /* Estilos para o formulário de busca */
         .form-busca {
             display: flex;
             gap: 10px;
             margin-bottom: 30px;
         }
         .form-busca input {
-            flex-grow: 1; /* Faz o campo de texto ocupar o espaço disponível */
+            flex-grow: 1;
         }
-
-        /* Estilos para o card de vaga */
         .vaga-card {
             border: 1px solid #e0e0e0;
             padding: 20px;
@@ -37,6 +35,10 @@
             margin: 5px 0;
             color: #555;
         }
+        .voltar-link {
+            margin-top: 30px;
+            display: inline-block;
+        }
     </style>
 
     {% for vaga in vagas %}
@@ -49,4 +51,7 @@
     {% empty %}
         <p>Nenhuma vaga encontrada para sua busca.</p>
     {% endfor %}
+
+    <!-- Link de "voltar" corrigido -->
+    <a href="{% url 'lista_empresas' %}" class="voltar-link">&larr; Voltar para a lista de empresas</a>
 {% endblock %}

@@ -4,7 +4,7 @@
 
 {% block content %}
     <h1>Teste de Perfil Comportamental</h1>
-    <p>Olá, {{ candidato.nome }}. Para cada grupo de quatro palavras ou frases, marque aquela que mais se identifica com você**.</p>
+    <p>Olá, {{ candidato.nome }}. Para cada pergunta, marque a alternativa que **mais se identifica com você**.</p>
     <hr>
 
     <form method="post">
@@ -12,7 +12,9 @@
         
         {% for pergunta in perguntas %}
             <div class="pergunta-bloco">
-                <h3>Pergunta {{ forloop.counter }}</h3>
+                <!-- CORREÇÃO: Adicionado o texto da pergunta aqui -->
+                <h3>{{ forloop.counter }}. {{ pergunta.texto }}</h3>
+                
                 <div class="alternativas">
                     <label class="alternativa-label">
                         <input type="radio" name="pergunta_{{ pergunta.id }}" value="I" required>
@@ -49,11 +51,13 @@
             margin-top: 0;
             border-bottom: 2px solid #eee;
             padding-bottom: 10px;
+            font-size: 1.1em;
         }
         .alternativas {
             display: flex;
             flex-direction: column;
             gap: 15px;
+            margin-top: 15px;
         }
         .alternativa-label {
             display: flex;

@@ -2,12 +2,52 @@
 
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import (
-    Vaga, Candidato, Inscricao, Pergunta, RespostaCandidato
+    Vaga, Candidato, Inscricao, Pergunta, RespostaCandidato, Empresa
 )
 from .forms import CandidaturaForm
 from django.core.mail import send_mail
 from django.conf import settings
 from django.db.models import Q, Count
+
+
+# --- NOVA VIEW PARA A PÁGINA INICIAL ---
+def lista_empresas(request):
+    """
+    Esta é a nova página inicial. Ela busca todas as empresas
+    e as exibe.
+    """
+    empresas = Empresa.objects.all()
+    contexto = {
+        'empresas': empresas,
+        'titulo_pagina': 'Escolha uma Empresa'
+    }
+    return render(request, 'vagas/lista_empresas.html', contexto)
+# -----------------------------------------
+
+# --- VIEW DE VAGAS ATUALIZADA ---
+def lista_vagas(request, empresa_id):
+    """
+    Esta view agora mostra apenas as vagas de uma empresa específica.
+    """
+    empresa = get_object_or_404(Empresa, id=empresa_id)
+    query = request.GET.get('q')
+    
+    # Filtramos as vagas para pertencerem apenas à empresa selecionada
+    vagas = Vaga.objects.filter(empresa=empresa).order_by('-data_criacao')
+    
+    if query:
+        vagas = vagas.filter(
+            Q(titulo__icontains=query) |
+            Q(descricao__icontains=query) |
+            Q(requisitos__icontains=query)
+        )
+        
+    contexto = {
+        'vagas': vagas,
+        'empresa': empresa, # Enviamos a empresa para o template
+        'titulo_pagina': f'Vagas em {empresa.nome}'
+    }
+    return render(request, 'vagas/lista_vagas.html', contexto)
 
 def calcular_e_salvar_perfil(candidato):
     """
@@ -53,20 +93,6 @@ def calcular_e_salvar_perfil(candidato):
         candidato.perfil_comportamental = "Indefinido"
 
     candidato.save()
-
-
-def lista_vagas(request):
-    query = request.GET.get('q')
-    vagas = Vaga.objects.all().order_by('-data_criacao')
-    if query:
-        vagas = vagas.filter(
-            Q(titulo__icontains=query) |
-            Q(descricao__icontains=query) |
-            Q(requisitos__icontains=query)
-        )
-    contexto = {'vagas': vagas}
-    # CORREÇÃO: Adicionado o caminho 'vagas/'
-    return render(request, 'vagas/lista_vagas.html', contexto)
 
 def detalhes_vaga(request, vaga_id):
     vaga = get_object_or_404(Vaga, id=vaga_id)

@@ -1,12 +1,14 @@
 {% extends 'base.html' %}
 
-{% block content %}
-    <title>Confirmação</title>
+{% block title %}Confirmação de Candidatura{% endblock %}
 
+{% block content %}
     <h1>Obrigado por se candidatar à vaga: {{ vaga.titulo }}</h1>
-    <p>Em breve entraremos em contato caso seu perfil seja selecionado.</p>
+    <h3>Empresa: {{ vaga.empresa.nome }}</h3>
+    <hr>
+    <p>A sua candidatura foi recebida com sucesso. Em breve entraremos em contacto caso o seu perfil seja selecionado para as próximas etapas.</p>
 
     <br>
-    <a href="{% url 'lista_vagas' %}">← Voltar para lista de vagas</a>
-
+    <!-- CORREÇÃO: O link de "Voltar" agora aponta para a lista de vagas da empresa correta -->
+    <a href="{% url 'lista_vagas' vaga.empresa.id %}">← Voltar para a lista de vagas</a>
 {% endblock %}

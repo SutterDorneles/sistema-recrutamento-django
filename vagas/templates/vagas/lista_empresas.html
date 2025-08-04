@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titulo_pagina }}{% endblock %}
+
+{% block content %}
+    <h1>Nossos Parceiros</h1>
+    <p>Selecione uma empresa para ver as vagas disponíveis.</p>
+
+    <div class="empresa-grid">
+        {% for empresa in empresas %}
+            <a href="{% url 'lista_vagas' empresa.id %}" class="empresa-card">
+                {% if empresa.logotipo %}
+                    <img src="{{ empresa.logotipo.url }}" alt="Logotipo da {{ empresa.nome }}">
+                {% else %}
+                    <div class="logo-placeholder">
+                        <span>{{ empresa.nome|first }}</span>
+                    </div>
+                {% endif %}
+                <h2>{{ empresa.nome }}</h2>
+            </a>
+        {% empty %}
+            <p>Nenhuma empresa cadastrada no momento.</p>
+        {% endfor %}
+    </div>
+
+    <style>
+        .empresa-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .empresa-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            text-align: center;
+            transition: box-shadow 0.3s ease, transform 0.3s ease;
+            text-decoration: none;
+            color: var(--cor-texto);
+        }
+        .empresa-card:hover {
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-5px);
+            text-decoration: none;
+        }
+        .empresa-card img {
+            max-width: 100px;
+            max-height: 100px;
+            margin-bottom: 15px;
+            object-fit: contain;
+        }
+        .empresa-card h2 {
+            font-size: 1.2em;
+            margin: 0;
+        }
+        .logo-placeholder {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 15px;
+            background-color: #f0f0f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5em;
+            font-weight: bold;
+            color: var(--cor-primaria);
+        }
+    </style>
+{% endblock %}

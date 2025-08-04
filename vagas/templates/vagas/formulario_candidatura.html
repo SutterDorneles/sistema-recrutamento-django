@@ -1,9 +1,11 @@
 {% extends 'base.html' %}
 
-{% block content %}
-    <title>Candidatar-se - {{ vaga.titulo }}</title>
+{% block title %}Candidatar-se - {{ vaga.titulo }}{% endblock %}
 
+{% block content %}
     <h1>Candidatura para: {{ vaga.titulo }}</h1>
+    <h3>Empresa: {{ vaga.empresa.nome }}</h3>
+    <hr>
 
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
@@ -12,6 +14,6 @@
     </form>
 
     <br>
-    <a href="{% url 'lista_vagas' %}">← Voltar</a>
-
+    <!-- CORREÇÃO: O link de "Voltar" agora aponta para a página de detalhes da vaga -->
+    <a href="{% url 'detalhes_vaga' vaga.id %}">← Voltar</a>
 {% endblock %}

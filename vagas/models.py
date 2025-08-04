@@ -2,15 +2,47 @@
 
 from django.db import models
 
+# --- NOVO MODELO PARA AS EMPRESAS ---
+class Empresa(models.Model):
+    nome = models.CharField(max_length=100, verbose_name="Nome da Empresa")
+    logotipo = models.ImageField(upload_to='logotipos/', null=True, blank=True, verbose_name="Logotipo")
+    descricao = models.TextField(blank=True, null=True, verbose_name="Sobre a Empresa")
+
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name = "Empresa"
+        verbose_name_plural = "Empresas"
+# ------------------------------------
+
 class Vaga(models.Model):
-    # ... (seu modelo Vaga continua o mesmo)
+    TURNO_CHOICES = [
+        ('Diurno', 'Diurno'),
+        ('Noturno', 'Noturno'),
+        ('Qualquer', 'Qualquer Turno'),
+    ]
+    CARGO_CHOICES = [
+        ('Garçom', 'Garçom'),
+        ('Cozinha', 'Cozinha'),
+        ('Caixa', 'Caixa'),
+        ('Serviços gerais', 'Serviços gerais'),
+        ('Freelancer', 'Freelancer'),
+    ]
+
+    # --- CAMPO ADICIONADO PARA LIGAR A VAGA À EMPRESA ---
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name="vagas", verbose_name="Empresa")
+    # ----------------------------------------------------
+
     titulo = models.CharField(max_length=100)
     descricao = models.TextField()
     requisitos = models.TextField()
+    turno = models.CharField(max_length=50, choices=TURNO_CHOICES, null=True, blank=True)
+    tipo_cargo = models.CharField(max_length=100, choices=CARGO_CHOICES, null=True, blank=True)
     data_criacao = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.titulo
+        return f"{self.titulo} ({self.empresa.nome})"
 
 class Candidato(models.Model):
     # ... (seus campos existentes continuam aqui)

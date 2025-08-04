@@ -2,7 +2,8 @@
 
 from django.contrib import admin
 from django.db import models
-from .models import Vaga, Candidato, Inscricao, Pergunta, RespostaCandidato
+# Importamos o novo modelo Empresa
+from .models import Vaga, Candidato, Inscricao, Pergunta, RespostaCandidato, Empresa 
 import csv
 from django.http import HttpResponse
 from django.utils import timezone
@@ -19,23 +20,16 @@ class MyDashboardAdminSite(admin.AdminSite):
         return custom_urls + urls
 
     def dashboard_view(self, request):
-        # Pega o contexto padrão do admin, que inclui a variável 'app_list'
         context = self.each_context(request)
-
-        # Estatísticas para os cartões
         total_vagas = Vaga.objects.count()
         total_candidatos = Candidato.objects.count()
         sete_dias_atras = timezone.now() - timedelta(days=7)
         novas_inscricoes = Inscricao.objects.filter(data_inscricao__gte=sete_dias_atras).count()
         candidatos_em_analise = Inscricao.objects.filter(status='em_analise').count()
-
-        # Dados para o gráfico de perfis
         total_aguia = Candidato.objects.filter(perfil_comportamental__icontains='Águia').count()
         total_gato = Candidato.objects.filter(perfil_comportamental__icontains='Gato').count()
         total_tubarao = Candidato.objects.filter(perfil_comportamental__icontains='Tubarão').count()
         total_lobo = Candidato.objects.filter(perfil_comportamental__icontains='Lobo').count()
-
-        # Adiciona as nossas estatísticas personalizadas ao contexto
         context.update({
             'total_vagas': total_vagas,
             'total_candidatos': total_candidatos,
@@ -61,9 +55,9 @@ class InscricaoInline(admin.TabularInline):
     }
 
 class VagaAdmin(admin.ModelAdmin):
-    list_display = ('titulo', 'data_criacao')
-    search_fields = ('titulo', 'descricao')
-    list_filter = ('data_criacao',)
+    list_display = ('titulo', 'empresa', 'tipo_cargo', 'turno', 'data_criacao')
+    search_fields = ('titulo', 'descricao', 'empresa__nome')
+    list_filter = ('empresa', 'tipo_cargo', 'turno', 'data_criacao',)
     inlines = [InscricaoInline]
 
 class CandidatoAdmin(admin.ModelAdmin):
@@ -136,10 +130,27 @@ class PerguntaAdmin(admin.ModelAdmin):
     search_fields = ('texto',)
 
 class RespostaCandidatoAdmin(admin.ModelAdmin):
-    list_display = ('candidato', 'pergunta', 'perfil_escolhido')
+    # ALTERAÇÃO: Trocamos 'pergunta' por um método mais claro
+    list_display = ('candidato', 'get_texto_pergunta', 'perfil_escolhido')
     list_filter = ('perfil_escolhido', 'candidato')
     autocomplete_fields = ['candidato', 'pergunta']
+    # Adicionamos uma barra de pesquisa
+    search_fields = ('candidato__nome', 'pergunta__texto')
 
+    # Nova função para buscar o texto da pergunta
+    def get_texto_pergunta(self, obj):
+        return obj.pergunta.texto
+    # Define o nome que aparecerá no cabeçalho da coluna
+    get_texto_pergunta.short_description = 'Texto da Pergunta'
+
+# --- REGISTO DO NOVO MODELO EMPRESA ---
+class EmpresaAdmin(admin.ModelAdmin):
+    list_display = ('nome',)
+    search_fields = ('nome',)
+# ---------------------------------------
+
+# Registamos os modelos no nosso admin personalizado
+admin_site.register(Empresa, EmpresaAdmin) # <-- Linha adicionada
 admin_site.register(Vaga, VagaAdmin)
 admin_site.register(Candidato, CandidatoAdmin)
 admin_site.register(Inscricao, InscricaoAdmin)
