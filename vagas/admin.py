@@ -9,6 +9,7 @@ from django.utils import timezone
 from datetime import timedelta
 from django.urls import path
 from django.shortcuts import render
+from django import forms # Importação necessária para o formulário personalizado
 
 class MyDashboardAdminSite(admin.AdminSite):
     # ... (código do dashboard continua o mesmo)
@@ -54,11 +55,51 @@ class InscricaoInline(admin.TabularInline):
         models.TextField: {'widget': admin.widgets.AdminTextareaWidget(attrs={'rows': 3, 'cols': 40})},
     }
 
+# --- FORMULÁRIO PERSONALIZADO PARA A CRIAÇÃO DE VAGAS ---
+class VagaAdminForm(forms.ModelForm):
+    # Este é um novo campo que não existe no modelo Vaga.
+    # Será usado para selecionar múltiplas empresas para replicar a vaga.
+    replicar_para_empresas = forms.ModelMultipleChoiceField(
+        queryset=Empresa.objects.all(),
+        widget=admin.widgets.FilteredSelectMultiple('Outras empresas', is_stacked=False),
+        required=False,
+        label='Replicar esta vaga para outras empresas',
+        help_text='Selecione empresas adicionais onde esta vaga também deve ser criada. A empresa principal deve ser selecionada no campo "Empresa" acima.'
+    )
+
+    class Meta:
+        model = Vaga
+        fields = '__all__'
+
 class VagaAdmin(admin.ModelAdmin):
+    # Usa o nosso formulário personalizado
+    form = VagaAdminForm
     list_display = ('titulo', 'empresa', 'tipo_cargo', 'turno', 'data_criacao')
     search_fields = ('titulo', 'descricao', 'empresa__nome')
     list_filter = ('empresa', 'tipo_cargo', 'turno', 'data_criacao',)
     inlines = [InscricaoInline]
+
+    # Este método é chamado quando uma Vaga é guardada a partir do formulário do admin.
+    def save_model(self, request, obj, form, change):
+        # Primeiro, guarda o objeto original normalmente.
+        # Isto irá guardar a Vaga para a empresa principal selecionada no campo 'empresa'.
+        super().save_model(request, obj, form, change)
+
+        # Pega na lista de empresas adicionais para replicar a Vaga.
+        empresas_adicionais = form.cleaned_data.get('replicar_para_empresas')
+
+        if empresas_adicionais:
+            # Iteramos sobre as empresas selecionadas.
+            for empresa in empresas_adicionais:
+                # Saltamos a empresa principal, pois a Vaga já foi guardada para ela.
+                if empresa != obj.empresa:
+                    # O truque do Django para criar uma cópia: definir a chave primária como None.
+                    obj.pk = None
+                    # Atribui a nova empresa.
+                    obj.empresa = empresa
+                    # Guarda o novo objeto Vaga.
+                    obj.save()
+
 
 class CandidatoAdmin(admin.ModelAdmin):
     list_display = ('nome', 'email', 'perfil_comportamental', 'cidade')
@@ -72,16 +113,12 @@ class CandidatoAdmin(admin.ModelAdmin):
     readonly_fields = ('perfil_comportamental', 'total_i', 'total_c', 'total_a', 'total_o')
 
 class InscricaoAdmin(admin.ModelAdmin):
-    # --- ALTERAÇÃO AQUI ---
-    # Adicionamos a empresa à lista de colunas visíveis
     list_display = ('get_nome_candidato', 'get_empresa_nome', 'get_vaga_titulo', 'status', 'data_inscricao')
-    # ----------------------
     list_filter = ('vaga__empresa__nome', 'status', 'data_inscricao')
     search_fields = ('candidato__nome', 'candidato__email', 'vaga__titulo')
     list_editable = ('status',)
     actions = ['marcar_como_em_analise', 'marcar_como_entrevista', 'marcar_como_aprovado', 'marcar_como_rejeitado', 'exportar_para_csv']
     
-    # ... (suas ações em massa continuam aqui)
     def marcar_como_em_analise(self, request, queryset):
         queryset.update(status='em_analise')
         self.message_user(request, f"{queryset.count()} inscrições foram marcadas como 'Em Análise'.")
@@ -128,11 +165,9 @@ class InscricaoAdmin(admin.ModelAdmin):
         return obj.vaga.titulo
     get_vaga_titulo.short_description = 'Vaga'
 
-    # --- NOVA FUNÇÃO ADICIONADA ---
     def get_empresa_nome(self, obj):
         return obj.vaga.empresa.nome
     get_empresa_nome.short_description = 'Empresa'
-    # ------------------------------
 
 class PerguntaAdmin(admin.ModelAdmin):
     list_display = ('texto', 'ativo')
