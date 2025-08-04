@@ -11,13 +11,11 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 # --- ALLOWED_HOSTS CORRIGIDO PARA PYTHONANYWHERE ---
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
-
-# Adicione o seu endereço do PythonAnywhere aqui
-# Substitua 'seu-usuario' pelo seu nome de utilizador real
-PYTHONANYWHERE_HOSTNAME = config('PYTHONANYWHERE_HOSTNAME', default=None)
-if PYTHONANYWHERE_HOSTNAME:
-    ALLOWED_HOSTS.append(PYTHONANYWHERE_HOSTNAME)
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'localhost',
+    'sutter.pythonanywhere.com', # Adicionado diretamente para garantir o funcionamento
+]
 # --- FIM DA CORREÇÃO ---
 
 
