@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Vagas Disponíveis{% endblock %}
+
+{% block content %}
+    <h1>🔍 Vagas Abertas</h1>
+
+    <!-- Formulário de Busca -->
+    <form method="get" action="{% url 'lista_vagas' %}" class="form-busca">
+        <input type="text" name="q" placeholder="Buscar por cargo, tecnologia, etc..." value="{{ request.GET.q }}">
+        <button type="submit" class="btn">Buscar</button>
+    </form>
+
+    <style>
+        /* Estilos para o formulário de busca */
+        .form-busca {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        .form-busca input {
+            flex-grow: 1; /* Faz o campo de texto ocupar o espaço disponível */
+        }
+
+        /* Estilos para o card de vaga */
+        .vaga-card {
+            border: 1px solid #e0e0e0;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            transition: box-shadow 0.3s ease;
+        }
+        .vaga-card:hover {
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+        .vaga-card p {
+            margin: 5px 0;
+            color: #555;
+        }
+    </style>
+
+    {% for vaga in vagas %}
+        <div class="vaga-card">
+            <h2><a href="{% url 'detalhes_vaga' vaga.id %}">{{ vaga.titulo }}</a></h2>
+            <p>{{ vaga.descricao|truncatewords:30 }}</p>
+            <p><strong>Requisitos:</strong> {{ vaga.requisitos|truncatewords:20 }}</p>
+            <p><em>Publicada em {{ vaga.data_criacao|date:"d/m/Y" }}</em></p>
+        </div>
+    {% empty %}
+        <p>Nenhuma vaga encontrada para sua busca.</p>
+    {% endfor %}
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <title>Confirmação</title>
+
+    <h1>Obrigado por se candidatar à vaga: {{ vaga.titulo }}</h1>
+    <p>Em breve entraremos em contato caso seu perfil seja selecionado.</p>
+
+    <br>
+    <a href="{% url 'lista_vagas' %}">← Voltar para lista de vagas</a>
+
+{% endblock %}

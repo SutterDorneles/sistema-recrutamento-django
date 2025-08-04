@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titulo_pagina }}{% endblock %}
+
+{% block content %}
+    <h1>Teste de Perfil Comportamental</h1>
+    <p>Olá, {{ candidato.nome }}. Para cada grupo de quatro palavras ou frases, marque aquela que **mais se identifica com você**.</p>
+    <hr>
+
+    <form method="post">
+        {% csrf_token %}
+        
+        {% for pergunta in perguntas %}
+            <div class="pergunta-bloco">
+                <h3>Pergunta {{ forloop.counter }}</h3>
+                <div class="alternativas">
+                    <label class="alternativa-label">
+                        <input type="radio" name="pergunta_{{ pergunta.id }}" value="I" required>
+                        <span>{{ pergunta.alternativa_i }}</span>
+                    </label>
+                    <label class="alternativa-label">
+                        <input type="radio" name="pergunta_{{ pergunta.id }}" value="C" required>
+                        <span>{{ pergunta.alternativa_c }}</span>
+                    </label>
+                    <label class="alternativa-label">
+                        <input type="radio" name="pergunta_{{ pergunta.id }}" value="A" required>
+                        <span>{{ pergunta.alternativa_a }}</span>
+                    </label>
+                    <label class="alternativa-label">
+                        <input type="radio" name="pergunta_{{ pergunta.id }}" value="O" required>
+                        <span>{{ pergunta.alternativa_o }}</span>
+                    </label>
+                </div>
+            </div>
+        {% endfor %}
+
+        <button type="submit" class="btn">Finalizar e Enviar Teste</button>
+    </form>
+
+    <style>
+        .pergunta-bloco {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .pergunta-bloco h3 {
+            margin-top: 0;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .alternativas {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .alternativa-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .alternativa-label:hover {
+            background-color: #eef7ff;
+        }
+        .alternativa-label input[type="radio"] {
+            width: auto; /* Reseta o estilo global do formulário */
+        }
+    </style>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <title>Candidatar-se - {{ vaga.titulo }}</title>
+
+    <h1>Candidatura para: {{ vaga.titulo }}</h1>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn">Enviar candidatura</button>
+    </form>
+
+    <br>
+    <a href="{% url 'lista_vagas' %}">← Voltar</a>
+
+{% endblock %}

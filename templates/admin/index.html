@@ -1,0 +1,214 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <style>
+        /* Ajustes para os cartões de estatísticas do Jazzmin */
+        .small-box {
+            border-radius: .25rem;
+            box-shadow: 0 0 1px rgba(0,0,0,.125),0 1px 3px rgba(0,0,0,.2);
+            display: block;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .small-box > .inner {
+            padding: 10px;
+        }
+        .small-box h3, .small-box p {
+            z-index: 5;
+            color: #fff;
+        }
+        .small-box h3 {
+            font-size: 38px;
+            font-weight: 700;
+            margin: 0 0 10px 0;
+            padding: 0;
+            white-space: nowrap;
+        }
+        .small-box .icon {
+            color: rgba(0,0,0,.15);
+            z-index: 0;
+            font-size: 70px;
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            transition: all .3s linear;
+        }
+        .small-box:hover .icon {
+            font-size: 75px;
+        }
+        .bg-info { background-color: #17a2b8 !important; }
+        .bg-success { background-color: #28a745 !important; }
+        .bg-warning { background-color: #ffc107 !important; color: #1f2d3d !important; }
+        .bg-danger { background-color: #dc3545 !important; }
+
+        /* Ajustes para o gráfico e lista de apps */
+        .chart-container {
+            position: relative;
+            height: 350px; /* Altura ajustada */
+        }
+        .card-body.p-0 .table {
+            margin-bottom: 0;
+        }
+        .card-body.p-0 .table th, .card-body.p-0 .table td {
+            padding: .75rem;
+        }
+    </style>
+{% endblock %}
+
+{% block content_title %}
+    <h1>Dashboard de Recrutamento</h1>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Cartões de Estatísticas -->
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-info">
+            <div class="inner">
+                <h3>{{ total_vagas }}</h3>
+                <p>Vagas Ativas</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-briefcase"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-success">
+            <div class="inner">
+                <h3>{{ novas_inscricoes }}</h3>
+                <p>Novas Inscrições (7 dias)</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-user-plus"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-warning">
+            <div class="inner">
+                <h3>{{ candidatos_em_analise }}</h3>
+                <p>Candidatos em Análise</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-search"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-danger">
+            <div class="inner">
+                <h3>{{ total_candidatos }}</h3>
+                <p>Total de Candidatos</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-users"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Gráfico de Perfis -->
+    <div class="col-lg-7">
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="far fa-chart-bar"></i>
+                    Distribuição de Perfis Comportamentais
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="perfilChart" 
+                            data-aguia="{{ total_aguia|default:0 }}"
+                            data-gato="{{ total_gato|default:0 }}"
+                            data-tubarao="{{ total_tubarao|default:0 }}"
+                            data-lobo="{{ total_lobo|default:0 }}">
+                    </canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Aplicações e Modelos -->
+    <div class="col-lg-5">
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-tasks"></i>
+                    Acesso Rápido
+                </h3>
+            </div>
+            <div class="card-body p-0">
+                {% for app in app_list %}
+                    <table class="table table-striped">
+                        {% for model in app.models %}
+                            <tr>
+                                {% if model.admin_url %}
+                                    <td><a href="{{ model.admin_url }}">{{ model.name }}</a></td>
+                                {% else %}
+                                    <td>{{ model.name }}</td>
+                                {% endif %}
+
+                                {% if model.add_url %}
+                                    <td class="text-right"><a href="{{ model.add_url }}" class="addlink">Adicionar</a></td>
+                                {% else %}
+                                    <td>&nbsp;</td>
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+                    </table>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Incluindo a biblioteca Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chartCanvas = document.getElementById('perfilChart');
+        if (chartCanvas) {
+            const ctx = chartCanvas.getContext('2d');
+            const chartData = [
+                chartCanvas.dataset.aguia,
+                chartCanvas.dataset.gato,
+                chartCanvas.dataset.tubarao,
+                chartCanvas.dataset.lobo
+            ];
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Águia (I)', 'Gato (C)', 'Tubarão (A)', 'Lobo (O)'],
+                    datasets: [{
+                        label: 'Total de Candidatos',
+                        data: chartData,
+                        backgroundColor: [
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 206, 86, 0.7)',
+                            'rgba(255, 99, 132, 0.7)',
+                            'rgba(75, 192, 192, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(75, 192, 192, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
