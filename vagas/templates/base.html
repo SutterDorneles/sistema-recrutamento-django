@@ -28,16 +28,23 @@
             margin: 0;
             padding: 20px;
             line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            box-sizing: border-box;
         }
 
         /* Container principal */
         .container {
             max-width: 800px;
-            margin: 20px auto;
+            margin: 0 auto; /* Centra o container e remove margem superior/inferior extra */
             padding: 30px;
             background-color: var(--cor-cartao);
             border-radius: 12px;
             box-shadow: var(--sombra-suave);
+            flex-grow: 1;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         /* Títulos */
@@ -90,6 +97,15 @@
             border-radius: 8px;
             box-sizing: border-box;
         }
+
+        /* Estilos para o Rodapé */
+        footer {
+            text-align: center;
+            padding: 20px 0;
+            margin-top: auto;
+            font-size: 0.9em;
+            color: #777;
+        }
         
     </style>
 </head>
@@ -99,5 +115,10 @@
         {% block content %}
         {% endblock %}
     </div>
+
+    <!-- Rodapé com o link para o admin -->
+    <footer>
+        <p>&copy; {% now "Y" %} - Sistema de Recrutamento | <a href="{% url 'admin:index' %}">Acesso Restrito</a></p>
+    </footer>
 </body>
 </html>
