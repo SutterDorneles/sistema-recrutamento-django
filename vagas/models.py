@@ -2,7 +2,6 @@
 
 from django.db import models
 
-# --- NOVO MODELO PARA AS EMPRESAS ---
 class Empresa(models.Model):
     nome = models.CharField(max_length=100, verbose_name="Nome da Empresa")
     logotipo = models.ImageField(upload_to='logotipos/', null=True, blank=True, verbose_name="Logotipo")
@@ -14,7 +13,6 @@ class Empresa(models.Model):
     class Meta:
         verbose_name = "Empresa"
         verbose_name_plural = "Empresas"
-# ------------------------------------
 
 class Vaga(models.Model):
     TURNO_CHOICES = [
@@ -22,18 +20,22 @@ class Vaga(models.Model):
         ('Noturno', 'Noturno'),
         ('Qualquer', 'Qualquer Turno'),
     ]
+    # --- LISTA DE CARGOS ATUALIZADA ---
     CARGO_CHOICES = [
         ('Garçom', 'Garçom'),
-        ('Cozinha', 'Cozinha'),
+        ('Cumim', 'Cumim'),
         ('Caixa', 'Caixa'),
+        ('Bartender', 'Bartender'),
+        ('Montagem de lanche', 'Montagem de lanche'),
+        ('Cozinheiro', 'Cozinheiro'),
+        ('Chapeiro', 'Chapeiro'),
+        ('Auxiliar de cozinha', 'Auxiliar de cozinha'),
+        ('Auxiliar de limpeza', 'Auxiliar de limpeza'),
         ('Serviços gerais', 'Serviços gerais'),
         ('Freelancer', 'Freelancer'),
     ]
 
-    # --- CAMPO ADICIONADO PARA LIGAR A VAGA À EMPRESA ---
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name="vagas", verbose_name="Empresa")
-    # ----------------------------------------------------
-
     titulo = models.CharField(max_length=100)
     descricao = models.TextField()
     requisitos = models.TextField()
@@ -45,7 +47,6 @@ class Vaga(models.Model):
         return f"{self.titulo} ({self.empresa.nome})"
 
 class Candidato(models.Model):
-    # ... (seus campos existentes continuam aqui)
     nome = models.CharField(max_length=100, default="Não informado")
     sexo = models.CharField(max_length=20, default="Não informado")
     endereco = models.CharField(max_length=255, default="Não informado")
@@ -62,6 +63,7 @@ class Candidato(models.Model):
     moradia = models.CharField(max_length=50, default="Não informado")
     meio_locomocao = models.CharField(max_length=100, default="Não informado")
     habitos = models.CharField(max_length=200, default="Nenhum")
+    # --- LISTA DE PREFERÊNCIAS ATUALIZADA PARA CONSISTÊNCIA ---
     preferencia_cargo = models.CharField(max_length=100, default="Não informado")
     preferencia_turno = models.CharField(max_length=50, default="Não informado")
     melhor_trabalho = models.TextField(blank=True, default="")
@@ -72,19 +74,16 @@ class Candidato(models.Model):
     email = models.EmailField(default="nao.informado@exemplo.com")
     curriculo = models.FileField(upload_to='curriculos/', blank=True, null=True)
 
-    # --- CAMPOS DO TESTE ATUALIZADOS ---
     total_i = models.IntegerField(default=0, verbose_name="Total 'I' (Águia)")
     total_c = models.IntegerField(default=0, verbose_name="Total 'C' (Gato)")
     total_a = models.IntegerField(default=0, verbose_name="Total 'A' (Tubarão)")
     total_o = models.IntegerField(default=0, verbose_name="Total 'O' (Lobo)")
     perfil_comportamental = models.CharField(max_length=50, blank=True, null=True, verbose_name="Perfil Comportamental")
-    # ------------------------------------
 
     def __str__(self):
         return self.nome
 
 class Inscricao(models.Model):
-    # ... (seu modelo Inscricao continua o mesmo)
     STATUS_CHOICES = [
         ('recebida', 'Recebida'),
         ('em_analise', 'Em Análise'),
@@ -101,7 +100,6 @@ class Inscricao(models.Model):
     def __str__(self):
         return f'{self.candidato.nome} - {self.vaga.titulo}'
 
-# --- MODELO DE PERGUNTA ATUALIZADO ---
 class Pergunta(models.Model):
     texto = models.CharField(max_length=255, verbose_name="Texto da Pergunta")
     alternativa_i = models.CharField(max_length=255, verbose_name="Alternativa (I - Águia)")
@@ -113,7 +111,6 @@ class Pergunta(models.Model):
     def __str__(self):
         return self.texto
 
-# --- MODELO DE RESPOSTA ATUALIZADO ---
 class RespostaCandidato(models.Model):
     PERFIL_CHOICES = [('I', 'I'), ('C', 'C'), ('A', 'A'), ('O', 'O')]
     candidato = models.ForeignKey(Candidato, on_delete=models.CASCADE)
@@ -125,4 +122,3 @@ class RespostaCandidato(models.Model):
 
     def __str__(self):
         return f"Resposta de {self.candidato.nome} para '{self.pergunta.texto}' foi '{self.perfil_escolhido}'"
-
