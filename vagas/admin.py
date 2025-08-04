@@ -2,7 +2,6 @@
 
 from django.contrib import admin
 from django.db import models
-# Importamos o novo modelo Empresa
 from .models import Vaga, Candidato, Inscricao, Pergunta, RespostaCandidato, Empresa 
 import csv
 from django.http import HttpResponse
@@ -12,6 +11,7 @@ from django.urls import path
 from django.shortcuts import render
 
 class MyDashboardAdminSite(admin.AdminSite):
+    # ... (código do dashboard continua o mesmo)
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
@@ -72,12 +72,16 @@ class CandidatoAdmin(admin.ModelAdmin):
     readonly_fields = ('perfil_comportamental', 'total_i', 'total_c', 'total_a', 'total_o')
 
 class InscricaoAdmin(admin.ModelAdmin):
-    list_display = ('get_nome_candidato', 'get_vaga_titulo', 'status', 'data_inscricao')
-    list_filter = ('status', 'vaga__titulo', 'data_inscricao')
-    search_fields = ('candidato__nome', 'candidato__email')
+    # --- ALTERAÇÃO AQUI ---
+    # Adicionamos a empresa à lista de colunas visíveis
+    list_display = ('get_nome_candidato', 'get_empresa_nome', 'get_vaga_titulo', 'status', 'data_inscricao')
+    # ----------------------
+    list_filter = ('vaga__empresa__nome', 'status', 'data_inscricao')
+    search_fields = ('candidato__nome', 'candidato__email', 'vaga__titulo')
     list_editable = ('status',)
     actions = ['marcar_como_em_analise', 'marcar_como_entrevista', 'marcar_como_aprovado', 'marcar_como_rejeitado', 'exportar_para_csv']
     
+    # ... (suas ações em massa continuam aqui)
     def marcar_como_em_analise(self, request, queryset):
         queryset.update(status='em_analise')
         self.message_user(request, f"{queryset.count()} inscrições foram marcadas como 'Em Análise'.")
@@ -124,33 +128,32 @@ class InscricaoAdmin(admin.ModelAdmin):
         return obj.vaga.titulo
     get_vaga_titulo.short_description = 'Vaga'
 
+    # --- NOVA FUNÇÃO ADICIONADA ---
+    def get_empresa_nome(self, obj):
+        return obj.vaga.empresa.nome
+    get_empresa_nome.short_description = 'Empresa'
+    # ------------------------------
+
 class PerguntaAdmin(admin.ModelAdmin):
     list_display = ('texto', 'ativo')
     list_filter = ('ativo',)
     search_fields = ('texto',)
 
 class RespostaCandidatoAdmin(admin.ModelAdmin):
-    # ALTERAÇÃO: Trocamos 'pergunta' por um método mais claro
     list_display = ('candidato', 'get_texto_pergunta', 'perfil_escolhido')
     list_filter = ('perfil_escolhido', 'candidato')
     autocomplete_fields = ['candidato', 'pergunta']
-    # Adicionamos uma barra de pesquisa
     search_fields = ('candidato__nome', 'pergunta__texto')
 
-    # Nova função para buscar o texto da pergunta
     def get_texto_pergunta(self, obj):
         return obj.pergunta.texto
-    # Define o nome que aparecerá no cabeçalho da coluna
     get_texto_pergunta.short_description = 'Texto da Pergunta'
 
-# --- REGISTO DO NOVO MODELO EMPRESA ---
 class EmpresaAdmin(admin.ModelAdmin):
     list_display = ('nome',)
     search_fields = ('nome',)
-# ---------------------------------------
 
-# Registamos os modelos no nosso admin personalizado
-admin_site.register(Empresa, EmpresaAdmin) # <-- Linha adicionada
+admin_site.register(Empresa, EmpresaAdmin)
 admin_site.register(Vaga, VagaAdmin)
 admin_site.register(Candidato, CandidatoAdmin)
 admin_site.register(Inscricao, InscricaoAdmin)
