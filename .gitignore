@@ -1,0 +1,18 @@
+# Ficheiros do Python
+__pycache__/
+*.pyc
+
+# Ambiente Virtual
+venv/
+env/
+
+# Base de dados do Django
+db.sqlite3
+db.sqlite3-journal
+
+# Ficheiros de mídia e estáticos (gerados)
+/media/
+/staticfiles/
+
+# Ficheiro de segredos
+.env
