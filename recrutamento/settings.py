@@ -1,31 +1,30 @@
 # Em seu_projeto/settings.py
 
 from pathlib import Path
-# Importamos a função 'config' da biblioteca decouple
 from decouple import config
-import os # Adicionado para STATIC_ROOT
+import os
+# Importamos a biblioteca para configurar a base de dados online
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- CONFIGURAÇÕES DE SEGURANÇA ---
-
-# A SECRET_KEY agora é lida do ficheiro .env
-# Se não for encontrada, o Django não irá iniciar (o que é bom para a segurança)
 SECRET_KEY = config('SECRET_KEY')
-
-# O DEBUG é lido do .env. O 'default=False' garante que, em produção,
-# onde o ficheiro .env pode não existir, o DEBUG seja FALSO por segurança.
-# O 'cast=bool' converte o texto "True" ou "False" para o tipo booleano correto.
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-# Em produção, esta lista precisa de conter o seu domínio (ex: 'www.meusite.com').
-# Por agora, vamos permitir o endereço local e, futuramente, adicionaremos o do site online.
+# --- ALLOWED_HOSTS CORRIGIDO PARA PRODUÇÃO ---
+# Pega o endereço do site a partir das variáveis de ambiente do Render
+RENDER_EXTERNAL_HOSTNAME = config('RENDER_EXTERNAL_HOSTNAME', default=None)
+
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+# --- FIM DA CORREÇÃO ---
 
 
 # Application definition
-
 INSTALLED_APPS = [
     'jazzmin',
     'django.contrib.admin',
@@ -39,7 +38,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    # Adicionado o middleware do Whitenoise
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -70,55 +68,36 @@ TEMPLATES = [
 WSGI_APPLICATION = 'recrutamento.wsgi.application' # Ajuste 'recrutamento' para o nome da sua pasta de projeto
 
 
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
+# --- CONFIGURAÇÃO DA BASE DE DADOS PARA PRODUÇÃO ---
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        # Se a variável DATABASE_URL não for encontrada, usa o SQLite local
+        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
+        conn_max_age=600
+    )
 }
+# --- FIM DA CONFIGURAÇÃO ---
 
 
 # Password validation
-# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
 ]
 
 
 # Internationalization
-# https://docs.djangoproject.com/en/4.2/topics/i18n/
-
 LANGUAGE_CODE = 'pt-br'
-
 TIME_ZONE = 'America/Sao_Paulo'
-
 USE_I18N = True
-
 USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
-
 STATIC_URL = 'static/'
-# Pasta onde o collectstatic irá juntar todos os ficheiros estáticos para produção
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-# Configuração de armazenamento do Whitenoise
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
@@ -128,8 +107,6 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Configuração de E-mail para Desenvolvimento
