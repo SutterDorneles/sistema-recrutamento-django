@@ -9,7 +9,7 @@ from django.utils import timezone
 from datetime import timedelta
 from django.urls import path
 from django.shortcuts import render
-from django import forms # Importação necessária para o formulário personalizado
+from django import forms
 
 class MyDashboardAdminSite(admin.AdminSite):
     # ... (código do dashboard continua o mesmo)
@@ -55,10 +55,7 @@ class InscricaoInline(admin.TabularInline):
         models.TextField: {'widget': admin.widgets.AdminTextareaWidget(attrs={'rows': 3, 'cols': 40})},
     }
 
-# --- FORMULÁRIO PERSONALIZADO PARA A CRIAÇÃO DE VAGAS ---
 class VagaAdminForm(forms.ModelForm):
-    # Este é um novo campo que não existe no modelo Vaga.
-    # Será usado para selecionar múltiplas empresas para replicar a vaga.
     replicar_para_empresas = forms.ModelMultipleChoiceField(
         queryset=Empresa.objects.all(),
         widget=admin.widgets.FilteredSelectMultiple('Outras empresas', is_stacked=False),
@@ -72,45 +69,59 @@ class VagaAdminForm(forms.ModelForm):
         fields = '__all__'
 
 class VagaAdmin(admin.ModelAdmin):
-    # Usa o nosso formulário personalizado
     form = VagaAdminForm
     list_display = ('titulo', 'empresa', 'tipo_cargo', 'turno', 'data_criacao')
     search_fields = ('titulo', 'descricao', 'empresa__nome')
     list_filter = ('empresa', 'tipo_cargo', 'turno', 'data_criacao',)
     inlines = [InscricaoInline]
 
-    # Este método é chamado quando uma Vaga é guardada a partir do formulário do admin.
     def save_model(self, request, obj, form, change):
-        # Primeiro, guarda o objeto original normalmente.
-        # Isto irá guardar a Vaga para a empresa principal selecionada no campo 'empresa'.
         super().save_model(request, obj, form, change)
-
-        # Pega na lista de empresas adicionais para replicar a Vaga.
         empresas_adicionais = form.cleaned_data.get('replicar_para_empresas')
-
         if empresas_adicionais:
-            # Iteramos sobre as empresas selecionadas.
             for empresa in empresas_adicionais:
-                # Saltamos a empresa principal, pois a Vaga já foi guardada para ela.
                 if empresa != obj.empresa:
-                    # O truque do Django para criar uma cópia: definir a chave primária como None.
                     obj.pk = None
-                    # Atribui a nova empresa.
                     obj.empresa = empresa
-                    # Guarda o novo objeto Vaga.
                     obj.save()
-
 
 class CandidatoAdmin(admin.ModelAdmin):
     list_display = ('nome', 'email', 'perfil_comportamental', 'cidade')
     search_fields = ('nome', 'email', 'cidade')
     list_filter = ('perfil_comportamental', 'cidade', 'preferencia_turno')
+    
     fieldsets = (
         ('Informações Pessoais', {'fields': ('nome', 'email', 'contato', 'sexo', 'idade', 'cidade', 'endereco')}),
-        ('Resultado do Teste de Perfil', {'fields': ('perfil_comportamental', 'total_i', 'total_c', 'total_a', 'total_o')}),
+        ('Resultado do Teste de Perfil', {'fields': ()}),
         ('Informações Adicionais', {'classes': ('collapse',), 'fields': ('preferencia_cargo', 'preferencia_turno', 'curriculo', 'pontos_fortes', 'lazer')}),
     )
     readonly_fields = ('perfil_comportamental', 'total_i', 'total_c', 'total_a', 'total_o')
+
+    change_form_template = 'admin/vagas/candidato/change_form.html'
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        candidato = self.get_object(request, object_id)
+        
+        if candidato:
+            total_respostas = candidato.total_i + candidato.total_c + candidato.total_a + candidato.total_o
+            
+            def calcular_percentual(valor, total):
+                if total == 0:
+                    return 0
+                return round((valor / total) * 100)
+
+            extra_context['chart_data'] = {
+                'aguia': calcular_percentual(candidato.total_i, total_respostas),
+                'gato': calcular_percentual(candidato.total_c, total_respostas),
+                'tubarao': calcular_percentual(candidato.total_a, total_respostas),
+                'lobo': calcular_percentual(candidato.total_o, total_respostas),
+                'perfil_principal': candidato.perfil_comportamental,
+            }
+
+        return super().change_view(
+            request, object_id, form_url, extra_context=extra_context,
+        )
 
 class InscricaoAdmin(admin.ModelAdmin):
     list_display = ('get_nome_candidato', 'get_empresa_nome', 'get_vaga_titulo', 'status', 'data_inscricao')

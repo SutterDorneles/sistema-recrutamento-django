@@ -1,0 +1,84 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block field_sets %}
+    {{ block.super }}
+
+    {% if chart_data %}
+    <fieldset class="module aligned">
+        <h2>Resultado do Teste de Perfil</h2>
+        <div class="form-row">
+            <div style="width: 100%; max-width: 600px; margin: 0 auto;">
+                <h4>Perfil Predominante: <strong>{{ chart_data.perfil_principal|default:"Não calculado" }}</strong></h4>
+                <!-- CORREÇÃO: Passando os dados através de atributos data-* -->
+                <canvas id="radarChart"
+                        data-aguia="{{ chart_data.aguia|default:0 }}"
+                        data-gato="{{ chart_data.gato|default:0 }}"
+                        data-tubarao="{{ chart_data.tubarao|default:0 }}"
+                        data-lobo="{{ chart_data.lobo|default:0 }}">
+                </canvas>
+            </div>
+        </div>
+    </fieldset>
+    {% endif %}
+{% endblock %}
+
+{% block admin_change_form_document_ready %}
+    {{ block.super }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chartCanvas = document.getElementById('radarChart');
+            if (chartCanvas && typeof Chart !== 'undefined') {
+                const ctx = chartCanvas.getContext('2d');
+
+                // CORREÇÃO: Lendo os dados a partir dos atributos data-* do canvas
+                const chartData = [
+                    chartCanvas.dataset.aguia,
+                    chartCanvas.dataset.gato,
+                    chartCanvas.dataset.tubarao,
+                    chartCanvas.dataset.lobo
+                ];
+
+                new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: [
+                            'Águia (Idealizador)',
+                            'Gato (Comunicador)',
+                            'Tubarão (Executor)',
+                            'Lobo (Analista)'
+                        ],
+                        datasets: [{
+                            label: 'Percentual de Perfil (%)',
+                            data: chartData,
+                            fill: true,
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            borderColor: 'rgb(54, 162, 235)',
+                            pointBackgroundColor: 'rgb(54, 162, 235)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgb(54, 162, 235)'
+                        }]
+                    },
+                    options: {
+                        elements: {
+                            line: {
+                                borderWidth: 3
+                            }
+                        },
+                        scales: {
+                            r: {
+                                angleLines: {
+                                    display: false
+                                },
+                                suggestedMin: 0,
+                                suggestedMax: 100
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %}
