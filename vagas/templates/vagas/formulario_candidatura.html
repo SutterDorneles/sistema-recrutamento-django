@@ -13,7 +13,54 @@
         <button type="submit" class="btn">Enviar candidatura</button>
     </form>
 
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Encontra o campo de CEP usando o ID do seu script original
+            const cepInput = document.getElementById("cep");
+
+            if (cepInput) {
+                // Cria o botão de busca
+                const buscarBtn = document.createElement("button");
+                buscarBtn.textContent = "Buscar Endereço";
+                buscarBtn.type = "button";
+                buscarBtn.className = "btn";
+                buscarBtn.style.marginTop = "10px";
+                buscarBtn.style.marginBottom = "10px";
+
+                // Insere o botão a seguir ao parágrafo que contém o campo do CEP
+                const cepContainer = cepInput.closest('p');
+                if (cepContainer) {
+                    cepContainer.after(buscarBtn);
+                }
+
+                // Adiciona o evento de clique ao botão
+                buscarBtn.addEventListener("click", function () {
+                    const cep = cepInput.value.replace(/\D/g, "");
+
+                    if (cep.length !== 8) {
+                        alert("CEP inválido.");
+                        return;
+                    }
+
+                    // A sua lógica de fetch original, agora acionada pelo clique
+                    fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (!data.erro) {
+                                // Usando os IDs do seu script original
+                                document.getElementById("rua").value = data.logradouro;
+                                document.getElementById("bairro").value = data.bairro;
+                                document.getElementById("cidade").value = data.localidade;
+                            } else {
+                                alert("CEP não encontrado.");
+                            }
+                        })
+                        .catch(() => alert("Erro ao buscar o CEP."));
+                });
+            }
+        });
+    </script>
+
     <br>
-    <!-- CORREÇÃO: O link de "Voltar" agora aponta para a página de detalhes da vaga -->
     <a href="{% url 'detalhes_vaga' vaga.id %}">← Voltar</a>
 {% endblock %}

@@ -5,7 +5,7 @@ class CandidaturaForm(forms.ModelForm):
     class Meta:
         model = Candidato
         fields = [
-            'nome', 'sexo', 'endereco', 'bairro', 'cidade', 'tempo_residencia',
+            'nome', 'sexo', 'cep', 'endereco', 'bairro', 'cidade', 'tempo_residencia',
             'contato', 'idade', 'estado_civil', 'tem_filhos', 'qtd_filhos',
             'idade_filhos', 'mora_com_filhos', 'moradia', 'meio_locomocao',
             'habitos', 'preferencia_cargo', 'preferencia_turno', 'melhor_trabalho',
@@ -15,7 +15,11 @@ class CandidaturaForm(forms.ModelForm):
         widgets = {
             'tem_filhos': forms.RadioSelect(choices=[(True, 'Sim'), (False, 'Não')]),
             'mora_com_filhos': forms.RadioSelect(choices=[(True, 'Sim'), (False, 'Não')]),
-            'sexo': forms.Select(choices=[('Masculino', 'Masculino'), ('Feminino', 'Feminino'), ('Outro', 'Outro')]),
+            'sexo': forms.Select(choices=[('Masculino', 'Masculino'), ('Feminino', 'Feminino'), ('Outro', 'Outro')]), 
+            'cep': forms.TextInput(attrs={'id': 'cep'}),
+            'endereco': forms.TextInput(attrs={'id': 'rua'}),
+            'bairro': forms.TextInput(attrs={'id': 'bairro'}),
+            'cidade': forms.TextInput(attrs={'id': 'cidade'}),
             'estado_civil': forms.Select(choices=[('Solteiro', 'Solteiro'), ('Casado', 'Casado'), ('Divorciado', 'Divorciado'), ('Viúvo', 'Viúvo')]),
             'moradia': forms.Select(choices=[('Aluguel', 'Moro de aluguel'), ('Propria', 'Tenho casa própria')]),
             'preferencia_cargo': forms.Select(choices=[
