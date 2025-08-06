@@ -80,7 +80,7 @@ def candidatar(request, vaga_id):
                         f"Para ver os detalhes da inscrição, aceda ao link:\n{link_inscricao}"
                     )
                     # IMPORTANTE: Substitua pelo e-mail real do recrutador
-                    email_do_recrutador = ['sutterdorns@gmail.com']
+                    email_do_recrutador = ['seu-email-de-recrutador@exemplo.com']
                     send_mail(
                         assunto_recrutador,
                         mensagem_recrutador,
@@ -116,7 +116,8 @@ def realizar_teste(request, candidato_id):
         'perguntas': perguntas,
         'titulo_pagina': 'Teste de Perfil Comportamental'
     }
-    return render(request, 'vagas/teste_personalidade.html', contexto)
+    # CORREÇÃO: Removido o 'vagas/' do caminho
+    return render(request, 'teste_personalidade.html', contexto)
 
 def calcular_e_salvar_perfil(candidato):
     contagem_perfis = RespostaCandidato.objects.filter(candidato=candidato).values('perfil_escolhido').annotate(total=Count('perfil_escolhido'))
