@@ -1,0 +1,118 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <style>
+        .pipeline-header { margin-bottom: 20px; }
+        .pipeline-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            overflow-x: auto;
+        }
+        .pipeline-column {
+            background-color: #f1f2f6;
+            border-radius: 8px;
+            padding: 10px;
+            min-height: 400px;
+        }
+        .pipeline-column h3 {
+            padding-bottom: 10px;
+            border-bottom: 2px solid #dfe4ea;
+            font-size: 1.1em;
+            margin-top: 0;
+            text-transform: capitalize;
+        }
+        .candidate-card {
+            background-color: #fff;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            font-size: 0.9em;
+        }
+        .candidate-card a { font-weight: bold; }
+        .candidate-card small { color: #6c757d; display: block; }
+        .candidate-card-actions {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .candidate-card-actions a {
+            font-size: 0.8em;
+            padding: 2px 6px;
+            border-radius: 3px;
+            background-color: #79aec8;
+            color: white;
+            text-decoration: none;
+        }
+        .candidate-card-actions a:hover {
+            background-color: #609ab6;
+        }
+        .action-reject {
+            background-color: #dc3545 !important;
+        }
+        .action-reject:hover {
+            background-color: #c82333 !important;
+        }
+    </style>
+{% endblock %}
+
+{% block content_title %}
+    <h1>Pipeline de Vagas</h1>
+{% endblock %}
+
+{% block content %}
+    <div class="pipeline-header">
+        <form method="get">
+            <label for="vaga_id">Selecione uma vaga para ver o pipeline:</label>
+            <select name="vaga_id" onchange="this.form.submit()">
+                <option value="">---</option>
+                {% for vaga in vagas %}
+                    <option value="{{ vaga.id }}" {% if selected_vaga.id == vaga.id %}selected{% endif %}>
+                        {{ vaga.titulo }} ({{ vaga.empresa.nome }})
+                    </option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+
+    {% if selected_vaga %}
+        <div class="pipeline-grid">
+            {% for status, inscricoes in pipeline_status.items %}
+                <div class="pipeline-column">
+                    <h3>{{ status|cut:"_"|title }} ({{ inscricoes|length }})</h3>
+                    {% for inscricao in inscricoes %}
+                        <div class="candidate-card">
+                            <a href="{% url 'admin:vagas_candidato_change' inscricao.candidato.id %}">
+                                {{ inscricao.candidato.nome }}
+                            </a>
+                            <small>Inscrito em: {{ inscricao.data_inscricao|date:"d/m/Y" }}</small>
+
+                            <!-- AÇÕES DE MUDANÇA DE STATUS -->
+                            <div class="candidate-card-actions">
+                                {% if inscricao.status == 'recebida' %}
+                                    <a href="{% url 'admin:pipeline_change_status' inscricao.id 'em_analise' %}">→ Mover para Análise</a>
+                                {% elif inscricao.status == 'em_analise' %}
+                                    <a href="{% url 'admin:pipeline_change_status' inscricao.id 'entrevista' %}">→ Agendar Entrevista</a>
+                                {% elif inscricao.status == 'entrevista' %}
+                                    <a href="{% url 'admin:pipeline_change_status' inscricao.id 'aprovado' %}">→ Aprovar</a>
+                                {% endif %}
+
+                                {% if inscricao.status != 'rejeitado' and inscricao.status != 'aprovado' %}
+                                    <a href="{% url 'admin:pipeline_change_status' inscricao.id 'rejeitado' %}" class="action-reject">Rejeitar</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>Por favor, selecione uma vaga acima para começar.</p>
+    {% endif %}
+{% endblock %}

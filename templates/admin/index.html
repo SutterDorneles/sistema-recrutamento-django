@@ -4,7 +4,7 @@
 {% block extrastyle %}
     {{ block.super }}
     <style>
-        /* Ajustes para os cartões de estatísticas do Jazzmin */
+        /* Estilos para os cartões de estatísticas do Jazzmin */
         .small-box {
             border-radius: .25rem;
             box-shadow: 0 0 1px rgba(0,0,0,.125),0 1px 3px rgba(0,0,0,.2);
@@ -41,15 +41,16 @@
         .bg-info { background-color: #17a2b8 !important; }
         .bg-success { background-color: #28a745 !important; }
         .bg-warning { background-color: #ffc107 !important; color: #1f2d3d !important; }
-        .bg-danger { background-color: #dc3545 !important; }
+        .bg-purple { background-color: #6f42c1 !important; }
+        .bg-orange { background-color: #fd7e14 !important; }
+        .bg-teal { background-color: #20c997 !important; }
+        .bg-dark { background-color: #343a40 !important; }
 
-        /* Ajustes para o gráfico e lista de apps */
+        /* Correção para o contentor do gráfico */
         .chart-container {
             position: relative;
-            height: 350px; /* Altura ajustada */
-        }
-        .card-body.p-0 .table {
-            margin-bottom: 0;
+            height: 300px;
+            width: 100%;
         }
         .card-body.p-0 .table th, .card-body.p-0 .table td {
             padding: .75rem;
@@ -62,51 +63,68 @@
 {% endblock %}
 
 {% block content %}
+<!-- CORREÇÃO: Agrupados todos os cartões de estatísticas numa única linha para melhor espaçamento -->
 <div class="row">
-    <!-- Cartões de Estatísticas -->
-    <div class="col-lg-3 col-6">
-        <div class="small-box bg-info">
-            <div class="inner">
-                <h3>{{ total_vagas }}</h3>
-                <p>Vagas Ativas</p>
+    <!-- Cartão Pipeline -->
+    <div class="col-lg-3 col-md-6 col-12">
+        <a href="{% url 'admin:pipeline' %}" style="text-decoration: none;">
+            <div class="small-box bg-purple">
+                <div class="inner"><h3>Pipeline</h3><p>Visualizar Funil</p></div>
+                <div class="icon"><i class="fas fa-stream"></i></div>
             </div>
-            <div class="icon">
-                <i class="fas fa-briefcase"></i>
-            </div>
-        </div>
+        </a>
     </div>
-    <div class="col-lg-3 col-6">
+    <!-- Cartão Vagas Ativas -->
+    <div class="col-lg-3 col-md-6 col-12">
+        <a href="{{ url_vagas }}" style="text-decoration: none;">
+            <div class="small-box bg-info">
+                <div class="inner"><h3>{{ total_vagas }}</h3><p>Vagas Ativas</p></div>
+                <div class="icon"><i class="fas fa-briefcase"></i></div>
+            </div>
+        </a>
+    </div>
+    <!-- Cartão Novas Inscrições -->
+    <div class="col-lg-3 col-md-6 col-12">
         <div class="small-box bg-success">
-            <div class="inner">
-                <h3>{{ novas_inscricoes }}</h3>
-                <p>Novas Inscrições (7 dias)</p>
-            </div>
-            <div class="icon">
-                <i class="fas fa-user-plus"></i>
-            </div>
+            <div class="inner"><h3>{{ novas_inscricoes }}</h3><p>Novas Inscrições (7 dias)</p></div>
+            <div class="icon"><i class="fas fa-user-plus"></i></div>
         </div>
     </div>
-    <div class="col-lg-3 col-6">
-        <div class="small-box bg-warning">
-            <div class="inner">
-                <h3>{{ candidatos_em_analise }}</h3>
-                <p>Candidatos em Análise</p>
+    <!-- Cartão Em Análise -->
+    <div class="col-lg-3 col-md-6 col-12">
+        <a href="{{ url_em_analise }}" style="text-decoration: none;">
+            <div class="small-box bg-warning">
+                <div class="inner"><h3>{{ candidatos_em_analise }}</h3><p>Candidatos em Análise</p></div>
+                <div class="icon"><i class="fas fa-search"></i></div>
             </div>
-            <div class="icon">
-                <i class="fas fa-search"></i>
-            </div>
-        </div>
+        </a>
     </div>
-    <div class="col-lg-3 col-6">
-        <div class="small-box bg-danger">
-            <div class="inner">
-                <h3>{{ total_candidatos }}</h3>
-                <p>Total de Candidatos</p>
+    <!-- Cartão Em Entrevista -->
+    <div class="col-lg-3 col-md-6 col-12">
+        <a href="{{ url_entrevista }}" style="text-decoration: none;">
+            <div class="small-box bg-orange">
+                <div class="inner"><h3>{{ candidatos_entrevista }}</h3><p>Em Entrevista</p></div>
+                <div class="icon"><i class="fas fa-comments"></i></div>
             </div>
-            <div class="icon">
-                <i class="fas fa-users"></i>
+        </a>
+    </div>
+    <!-- Cartão Aprovados -->
+    <div class="col-lg-3 col-md-6 col-12">
+        <a href="{{ url_aprovados }}" style="text-decoration: none;">
+            <div class="small-box bg-teal">
+                <div class="inner"><h3>{{ candidatos_aprovados }}</h3><p>Aprovados</p></div>
+                <div class="icon"><i class="fas fa-check-circle"></i></div>
             </div>
-        </div>
+        </a>
+    </div>
+    <!-- Cartão Rejeitados -->
+    <div class="col-lg-3 col-md-6 col-12">
+        <a href="{{ url_rejeitados }}" style="text-decoration: none;">
+            <div class="small-box bg-dark">
+                <div class="inner"><h3>{{ candidatos_rejeitados }}</h3><p>Rejeitados</p></div>
+                <div class="icon"><i class="fas fa-times-circle"></i></div>
+            </div>
+        </a>
     </div>
 </div>
 
@@ -114,12 +132,7 @@
     <!-- Gráfico de Perfis -->
     <div class="col-lg-7">
         <div class="card card-primary card-outline">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="far fa-chart-bar"></i>
-                    Distribuição de Perfis Comportamentais
-                </h3>
-            </div>
+            <div class="card-header"><h3 class="card-title"><i class="far fa-chart-bar"></i> Distribuição de Perfis Comportamentais</h3></div>
             <div class="card-body">
                 <div class="chart-container">
                     <canvas id="perfilChart" 
@@ -133,15 +146,10 @@
         </div>
     </div>
 
-    <!-- Lista de Aplicações e Modelos -->
+    <!-- Lista de Acesso Rápido -->
     <div class="col-lg-5">
         <div class="card card-primary card-outline">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-tasks"></i>
-                    Acesso Rápido
-                </h3>
-            </div>
+            <div class="card-header"><h3 class="card-title"><i class="fas fa-tasks"></i> Acesso Rápido</h3></div>
             <div class="card-body p-0">
                 {% for app in app_list %}
                     <table class="table table-striped">
@@ -152,7 +160,6 @@
                                 {% else %}
                                     <td>{{ model.name }}</td>
                                 {% endif %}
-
                                 {% if model.add_url %}
                                     <td class="text-right"><a href="{{ model.add_url }}" class="addlink">Adicionar</a></td>
                                 {% else %}
@@ -167,7 +174,6 @@
     </div>
 </div>
 
-<!-- Incluindo a biblioteca Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -188,18 +194,8 @@
                     datasets: [{
                         label: 'Total de Candidatos',
                         data: chartData,
-                        backgroundColor: [
-                            'rgba(54, 162, 235, 0.7)',
-                            'rgba(255, 206, 86, 0.7)',
-                            'rgba(255, 99, 132, 0.7)',
-                            'rgba(75, 192, 192, 0.7)'
-                        ],
-                        borderColor: [
-                            'rgba(54, 162, 235, 1)',
-                            'rgba(255, 206, 86, 1)',
-                            'rgba(255, 99, 132, 1)',
-                            'rgba(75, 192, 192, 1)'
-                        ],
+                        backgroundColor: ['rgba(54, 162, 235, 0.7)', 'rgba(255, 206, 86, 0.7)', 'rgba(255, 99, 132, 0.7)', 'rgba(75, 192, 192, 0.7)'],
+                        borderColor: ['rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)', 'rgba(255, 99, 132, 1)', 'rgba(75, 192, 192, 1)'],
                         borderWidth: 1
                     }]
                 },

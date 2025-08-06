@@ -1,47 +1,98 @@
 # Em vagas/admin.py
 
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.db import models
 from .models import Vaga, Candidato, Inscricao, Pergunta, RespostaCandidato, Empresa 
 import csv
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.utils import timezone
 from datetime import timedelta
-from django.urls import path
-from django.shortcuts import render
+from django.urls import path, reverse
+from django.shortcuts import render, get_object_or_404
 from django import forms
 
 class MyDashboardAdminSite(admin.AdminSite):
-    # ... (código do dashboard continua o mesmo)
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
             path('', self.admin_view(self.dashboard_view), name='index'),
+            path('pipeline/', self.admin_view(self.pipeline_view), name='pipeline'),
+            path(
+                'pipeline/change_status/<int:inscricao_id>/<str:new_status>/',
+                self.admin_view(self.change_status_view),
+                name='pipeline_change_status'
+            ),
         ]
         return custom_urls + urls
 
     def dashboard_view(self, request):
         context = self.each_context(request)
+        
+        # Estatísticas para os cartões
         total_vagas = Vaga.objects.count()
-        total_candidatos = Candidato.objects.count()
         sete_dias_atras = timezone.now() - timedelta(days=7)
         novas_inscricoes = Inscricao.objects.filter(data_inscricao__gte=sete_dias_atras).count()
         candidatos_em_analise = Inscricao.objects.filter(status='em_analise').count()
+        candidatos_entrevista = Inscricao.objects.filter(status='entrevista').count()
+        candidatos_aprovados = Inscricao.objects.filter(status='aprovado').count()
+        candidatos_rejeitados = Inscricao.objects.filter(status='rejeitado').count()
+
+        # Dados para o gráfico de perfis
         total_aguia = Candidato.objects.filter(perfil_comportamental__icontains='Águia').count()
         total_gato = Candidato.objects.filter(perfil_comportamental__icontains='Gato').count()
         total_tubarao = Candidato.objects.filter(perfil_comportamental__icontains='Tubarão').count()
         total_lobo = Candidato.objects.filter(perfil_comportamental__icontains='Lobo').count()
+
+        # URLs para os links dos cartões
+        base_inscricao_url = reverse('admin:vagas_inscricao_changelist')
+
         context.update({
             'total_vagas': total_vagas,
-            'total_candidatos': total_candidatos,
             'novas_inscricoes': novas_inscricoes,
             'candidatos_em_analise': candidatos_em_analise,
+            'candidatos_entrevista': candidatos_entrevista,
+            'candidatos_aprovados': candidatos_aprovados,
+            'candidatos_rejeitados': candidatos_rejeitados,
+            
+            'url_vagas': reverse('admin:vagas_vaga_changelist'),
+            'url_em_analise': f"{base_inscricao_url}?status__exact=em_analise",
+            'url_entrevista': f"{base_inscricao_url}?status__exact=entrevista",
+            'url_aprovados': f"{base_inscricao_url}?status__exact=aprovado",
+            'url_rejeitados': f"{base_inscricao_url}?status__exact=rejeitado",
+
             'total_aguia': total_aguia,
             'total_gato': total_gato,
             'total_tubarao': total_tubarao,
             'total_lobo': total_lobo,
         })
         return render(request, 'admin/index.html', context)
+
+    def pipeline_view(self, request):
+        context = self.each_context(request)
+        context['vagas'] = Vaga.objects.all()
+        selected_vaga_id = request.GET.get('vaga_id')
+        if selected_vaga_id:
+            selected_vaga = get_object_or_404(Vaga, id=selected_vaga_id)
+            inscricoes = Inscricao.objects.filter(vaga=selected_vaga).order_by('data_inscricao')
+            pipeline_status = {'recebida': [], 'em_analise': [], 'entrevista': [], 'aprovado': [], 'rejeitado': []}
+            for inscricao in inscricoes:
+                if inscricao.status in pipeline_status:
+                    pipeline_status[inscricao.status].append(inscricao)
+            context['pipeline_status'] = pipeline_status
+            context['selected_vaga'] = selected_vaga
+        return render(request, 'admin/pipeline.html', context)
+    
+    def change_status_view(self, request, inscricao_id, new_status):
+        inscricao = get_object_or_404(Inscricao, id=inscricao_id)
+        valid_statuses = [choice[0] for choice in Inscricao.STATUS_CHOICES]
+        if new_status in valid_statuses:
+            inscricao.status = new_status
+            inscricao.save()
+            messages.success(request, f"O status de {inscricao.candidato.nome} foi alterado para '{inscricao.get_status_display()}'.")
+        else:
+            messages.error(request, "Status inválido.")
+        redirect_url = reverse('admin:pipeline') + f'?vaga_id={inscricao.vaga.id}'
+        return HttpResponseRedirect(redirect_url)
 
 admin_site = MyDashboardAdminSite(name='myadmin')
 
@@ -63,7 +114,6 @@ class VagaAdminForm(forms.ModelForm):
         label='Replicar esta vaga para outras empresas',
         help_text='Selecione empresas adicionais onde esta vaga também deve ser criada. A empresa principal deve ser selecionada no campo "Empresa" acima.'
     )
-
     class Meta:
         model = Vaga
         fields = '__all__'
@@ -74,7 +124,6 @@ class VagaAdmin(admin.ModelAdmin):
     search_fields = ('titulo', 'descricao', 'empresa__nome')
     list_filter = ('empresa', 'tipo_cargo', 'turno', 'data_criacao',)
     inlines = [InscricaoInline]
-
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
         empresas_adicionais = form.cleaned_data.get('replicar_para_empresas')
@@ -89,28 +138,21 @@ class CandidatoAdmin(admin.ModelAdmin):
     list_display = ('nome', 'email', 'perfil_comportamental', 'cidade')
     search_fields = ('nome', 'email', 'cidade')
     list_filter = ('perfil_comportamental', 'cidade', 'preferencia_turno')
-    
     fieldsets = (
         ('Informações Pessoais', {'fields': ('nome', 'email', 'contato', 'sexo', 'idade', 'cidade', 'endereco')}),
         ('Resultado do Teste de Perfil', {'fields': ()}),
         ('Informações Adicionais', {'classes': ('collapse',), 'fields': ('preferencia_cargo', 'preferencia_turno', 'curriculo', 'pontos_fortes', 'lazer')}),
     )
     readonly_fields = ('perfil_comportamental', 'total_i', 'total_c', 'total_a', 'total_o')
-
     change_form_template = 'admin/vagas/candidato/change_form.html'
-
     def change_view(self, request, object_id, form_url='', extra_context=None):
         extra_context = extra_context or {}
         candidato = self.get_object(request, object_id)
-        
         if candidato:
             total_respostas = candidato.total_i + candidato.total_c + candidato.total_a + candidato.total_o
-            
             def calcular_percentual(valor, total):
-                if total == 0:
-                    return 0
+                if total == 0: return 0
                 return round((valor / total) * 100)
-
             extra_context['chart_data'] = {
                 'aguia': calcular_percentual(candidato.total_i, total_respostas),
                 'gato': calcular_percentual(candidato.total_c, total_respostas),
@@ -118,10 +160,7 @@ class CandidatoAdmin(admin.ModelAdmin):
                 'lobo': calcular_percentual(candidato.total_o, total_respostas),
                 'perfil_principal': candidato.perfil_comportamental,
             }
-
-        return super().change_view(
-            request, object_id, form_url, extra_context=extra_context,
-        )
+        return super().change_view(request, object_id, form_url, extra_context=extra_context)
 
 class InscricaoAdmin(admin.ModelAdmin):
     list_display = ('get_nome_candidato', 'get_empresa_nome', 'get_vaga_titulo', 'status', 'data_inscricao')
@@ -129,27 +168,22 @@ class InscricaoAdmin(admin.ModelAdmin):
     search_fields = ('candidato__nome', 'candidato__email', 'vaga__titulo')
     list_editable = ('status',)
     actions = ['marcar_como_em_analise', 'marcar_como_entrevista', 'marcar_como_aprovado', 'marcar_como_rejeitado', 'exportar_para_csv']
-    
     def marcar_como_em_analise(self, request, queryset):
         queryset.update(status='em_analise')
         self.message_user(request, f"{queryset.count()} inscrições foram marcadas como 'Em Análise'.")
     marcar_como_em_analise.short_description = "Marcar selecionadas como 'Em Análise'"
-
     def marcar_como_entrevista(self, request, queryset):
         queryset.update(status='entrevista')
         self.message_user(request, f"{queryset.count()} inscrições foram marcadas para 'Entrevista'.")
     marcar_como_entrevista.short_description = "Marcar selecionadas para 'Entrevista'"
-
     def marcar_como_aprovado(self, request, queryset):
         queryset.update(status='aprovado')
         self.message_user(request, f"{queryset.count()} inscrições foram marcadas como 'Aprovado'.")
     marcar_como_aprovado.short_description = "Marcar selecionadas como 'Aprovado'"
-
     def marcar_como_rejeitado(self, request, queryset):
         queryset.update(status='rejeitado')
         self.message_user(request, f"{queryset.count()} inscrições foram marcadas como 'Rejeitado'.")
     marcar_como_rejeitado.short_description = "Marcar selecionadas como 'Rejeitado'"
-
     def exportar_para_csv(self, request, queryset):
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="candidatos.csv"'
@@ -158,26 +192,16 @@ class InscricaoAdmin(admin.ModelAdmin):
         writer.writerow(['Nome do Candidato', 'Email', 'Telefone', 'Vaga', 'Status da Inscrição', 'Notas Internas'])
         for inscricao in queryset:
             writer.writerow([
-                inscricao.candidato.nome,
-                inscricao.candidato.email,
-                inscricao.candidato.contato,
-                inscricao.vaga.titulo,
-                inscricao.get_status_display(),
-                inscricao.notas_internas
+                inscricao.candidato.nome, inscricao.candidato.email, inscricao.candidato.contato,
+                inscricao.vaga.titulo, inscricao.get_status_display(), inscricao.notas_internas
             ])
         return response
     exportar_para_csv.short_description = "Exportar selecionadas para CSV"
-
-    def get_nome_candidato(self, obj):
-        return obj.candidato.nome
+    def get_nome_candidato(self, obj): return obj.candidato.nome
     get_nome_candidato.short_description = 'Nome do Candidato'
-
-    def get_vaga_titulo(self, obj):
-        return obj.vaga.titulo
+    def get_vaga_titulo(self, obj): return obj.vaga.titulo
     get_vaga_titulo.short_description = 'Vaga'
-
-    def get_empresa_nome(self, obj):
-        return obj.vaga.empresa.nome
+    def get_empresa_nome(self, obj): return obj.vaga.empresa.nome
     get_empresa_nome.short_description = 'Empresa'
 
 class PerguntaAdmin(admin.ModelAdmin):
@@ -190,9 +214,7 @@ class RespostaCandidatoAdmin(admin.ModelAdmin):
     list_filter = ('perfil_escolhido', 'candidato')
     autocomplete_fields = ['candidato', 'pergunta']
     search_fields = ('candidato__nome', 'pergunta__texto')
-
-    def get_texto_pergunta(self, obj):
-        return obj.pergunta.texto
+    def get_texto_pergunta(self, obj): return obj.pergunta.texto
     get_texto_pergunta.short_description = 'Texto da Pergunta'
 
 class EmpresaAdmin(admin.ModelAdmin):
