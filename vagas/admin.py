@@ -12,6 +12,7 @@ from django.shortcuts import render, get_object_or_404
 from django import forms
 
 class MyDashboardAdminSite(admin.AdminSite):
+    # ... (código do dashboard continua o mesmo)
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
@@ -27,25 +28,19 @@ class MyDashboardAdminSite(admin.AdminSite):
 
     def dashboard_view(self, request):
         context = self.each_context(request)
-        
-        # Estatísticas para os cartões
         total_vagas = Vaga.objects.count()
+        total_candidatos = Candidato.objects.count()
         sete_dias_atras = timezone.now() - timedelta(days=7)
         novas_inscricoes = Inscricao.objects.filter(data_inscricao__gte=sete_dias_atras).count()
         candidatos_em_analise = Inscricao.objects.filter(status='em_analise').count()
         candidatos_entrevista = Inscricao.objects.filter(status='entrevista').count()
         candidatos_aprovados = Inscricao.objects.filter(status='aprovado').count()
         candidatos_rejeitados = Inscricao.objects.filter(status='rejeitado').count()
-
-        # Dados para o gráfico de perfis
         total_aguia = Candidato.objects.filter(perfil_comportamental__icontains='Águia').count()
         total_gato = Candidato.objects.filter(perfil_comportamental__icontains='Gato').count()
         total_tubarao = Candidato.objects.filter(perfil_comportamental__icontains='Tubarão').count()
         total_lobo = Candidato.objects.filter(perfil_comportamental__icontains='Lobo').count()
-
-        # URLs para os links dos cartões
         base_inscricao_url = reverse('admin:vagas_inscricao_changelist')
-
         context.update({
             'total_vagas': total_vagas,
             'novas_inscricoes': novas_inscricoes,
@@ -53,13 +48,11 @@ class MyDashboardAdminSite(admin.AdminSite):
             'candidatos_entrevista': candidatos_entrevista,
             'candidatos_aprovados': candidatos_aprovados,
             'candidatos_rejeitados': candidatos_rejeitados,
-            
             'url_vagas': reverse('admin:vagas_vaga_changelist'),
             'url_em_analise': f"{base_inscricao_url}?status__exact=em_analise",
             'url_entrevista': f"{base_inscricao_url}?status__exact=entrevista",
             'url_aprovados': f"{base_inscricao_url}?status__exact=aprovado",
             'url_rejeitados': f"{base_inscricao_url}?status__exact=rejeitado",
-
             'total_aguia': total_aguia,
             'total_gato': total_gato,
             'total_tubarao': total_tubarao,
@@ -138,13 +131,31 @@ class CandidatoAdmin(admin.ModelAdmin):
     list_display = ('nome', 'email', 'perfil_comportamental', 'cidade')
     search_fields = ('nome', 'email', 'cidade')
     list_filter = ('perfil_comportamental', 'cidade', 'preferencia_turno')
+    
+    # --- ALTERAÇÃO AQUI: Organização completa dos campos do candidato ---
     fieldsets = (
-        ('Informações Pessoais', {'fields': ('nome', 'email', 'contato', 'sexo', 'idade', 'cidade', 'endereco')}),
-        ('Resultado do Teste de Perfil', {'fields': ()}),
-        ('Informações Adicionais', {'classes': ('collapse',), 'fields': ('preferencia_cargo', 'preferencia_turno', 'curriculo', 'pontos_fortes', 'lazer')}),
+        ('Informações Principais', {
+            'fields': ('nome', 'email', 'contato', 'idade', 'sexo', 'estado_civil')
+        }),
+        ('Endereço e Moradia', {
+            'fields': ('cep', 'endereco', 'bairro', 'cidade', 'tempo_residencia', 'moradia', 'meio_locomocao')
+        }),
+        ('Informações Familiares', {
+            'classes': ('collapse',), # Esta secção começará recolhida
+            'fields': ('tem_filhos', 'qtd_filhos', 'idade_filhos', 'mora_com_filhos')
+        }),
+        ('Perfil Profissional e Pessoal', {
+            'fields': ('preferencia_cargo', 'preferencia_turno', 'melhor_trabalho', 'pontos_fortes', 'objetivo_curto_prazo', 'objetivo_longo_prazo', 'lazer', 'habitos', 'curriculo')
+        }),
+        ('Resultado do Teste de Perfil', {
+            'fields': () # Esta secção é preenchida pelo gráfico
+        }),
     )
+    # -----------------------------------------------------------------
+    
     readonly_fields = ('perfil_comportamental', 'total_i', 'total_c', 'total_a', 'total_o')
     change_form_template = 'admin/vagas/candidato/change_form.html'
+    
     def change_view(self, request, object_id, form_url='', extra_context=None):
         extra_context = extra_context or {}
         candidato = self.get_object(request, object_id)
