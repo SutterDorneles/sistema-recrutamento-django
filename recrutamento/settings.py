@@ -3,21 +3,17 @@
 from pathlib import Path
 from decouple import config
 import os
-import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-# --- ALLOWED_HOSTS CORRIGIDO PARA PYTHONANYWHERE ---
 ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
-    'sutter.pythonanywhere.com', # Adicionado diretamente para garantir o funcionamento
+    'sutter.pythonanywhere.com',
 ]
-# --- FIM DA CORREÇÃO ---
-
 
 # Application definition
 INSTALLED_APPS = [
@@ -62,13 +58,32 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'recrutamento.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
 
+# --- CONFIGURAÇÃO DA BASE DE DADOS PARA PRODUÇÃO (MYSQL) ---
+# Verifica se estamos a correr no PythonAnywhere
+if 'PYTHONANYWHERE_DOMAIN' in os.environ:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': config('DB_NAME'),
+            'USER': config('DB_USER'),
+            'PASSWORD': config('DB_PASSWORD'),
+            'HOST': config('DB_HOST'),
+            'PORT': '3306',
+        }
+    }
+else:
+    # Configuração para o seu computador (desenvolvimento)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+# --- FIM DA CONFIGURAÇÃO ---
+
+
+# Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
@@ -89,7 +104,15 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Configuração de E-mail para Produção
+if not DEBUG:
+    EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
+    SENDGRID_API_KEY = config('SENDGRID_API_KEY')
+    DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 
 JAZZMIN_SETTINGS = {
     "site_title": "Painel de Recrutamento",
