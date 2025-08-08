@@ -1,0 +1,1298 @@
+[
+{
+  "model": "admin.logentry",
+  "pk": 1,
+  "fields": {
+    "action_time": "2025-08-04T14:17:11.161Z",
+    "user": 1,
+    "content_type": 12,
+    "object_id": "1",
+    "object_repr": "Ori Pedra Branca",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 2,
+  "fields": {
+    "action_time": "2025-08-04T14:18:00.651Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "1",
+    "object_repr": "Garçom (Ori Pedra Branca)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 3,
+  "fields": {
+    "action_time": "2025-08-04T14:21:11.118Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "1",
+    "object_repr": "eu sou...",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 4,
+  "fields": {
+    "action_time": "2025-08-04T20:17:25.046Z",
+    "user": 1,
+    "content_type": 12,
+    "object_id": "2",
+    "object_repr": "Ori Kobrasol",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 5,
+  "fields": {
+    "action_time": "2025-08-04T20:17:42.266Z",
+    "user": 1,
+    "content_type": 12,
+    "object_id": "3",
+    "object_repr": "Ori Centro",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 6,
+  "fields": {
+    "action_time": "2025-08-04T20:17:53.319Z",
+    "user": 1,
+    "content_type": 12,
+    "object_id": "4",
+    "object_repr": "Ori Santa Mônica",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 7,
+  "fields": {
+    "action_time": "2025-08-04T20:18:05.277Z",
+    "user": 1,
+    "content_type": 12,
+    "object_id": "5",
+    "object_repr": "Ori Biguaçu",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 8,
+  "fields": {
+    "action_time": "2025-08-04T20:18:16.396Z",
+    "user": 1,
+    "content_type": 12,
+    "object_id": "6",
+    "object_repr": "Ori Campeche",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 9,
+  "fields": {
+    "action_time": "2025-08-04T20:18:24.700Z",
+    "user": 1,
+    "content_type": 12,
+    "object_id": "7",
+    "object_repr": "Ori Ingleses",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 10,
+  "fields": {
+    "action_time": "2025-08-04T20:21:51.879Z",
+    "user": 1,
+    "content_type": 12,
+    "object_id": "8",
+    "object_repr": "Colorindo Tintas",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 11,
+  "fields": {
+    "action_time": "2025-08-04T20:22:14.262Z",
+    "user": 1,
+    "content_type": 12,
+    "object_id": "9",
+    "object_repr": "Corporis Treinamento Funcional",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 12,
+  "fields": {
+    "action_time": "2025-08-04T20:40:51.701Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "1",
+    "object_repr": "Eu sou...",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Texto da Pergunta\", \"Alternativa (A - Tubar\\u00e3o)\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 13,
+  "fields": {
+    "action_time": "2025-08-04T20:41:23.200Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "2",
+    "object_repr": "Eu gosto de ...",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 14,
+  "fields": {
+    "action_time": "2025-08-04T20:41:46.361Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "3",
+    "object_repr": "Se você quiser se dar bem comigo...",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 15,
+  "fields": {
+    "action_time": "2025-08-04T20:42:09.564Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "4",
+    "object_repr": "Para conseguir obter bons resultados é preciso...",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 16,
+  "fields": {
+    "action_time": "2025-08-04T20:42:48.941Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "5",
+    "object_repr": "Eu me divirto quando...",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 17,
+  "fields": {
+    "action_time": "2025-08-04T20:43:52.843Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "6",
+    "object_repr": "Eu penso que...",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 18,
+  "fields": {
+    "action_time": "2025-08-04T20:44:35.410Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "7",
+    "object_repr": "Minha preocupação é...",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 19,
+  "fields": {
+    "action_time": "2025-08-04T20:45:18.503Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "8",
+    "object_repr": "Eu prefiro...",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 20,
+  "fields": {
+    "action_time": "2025-08-04T20:50:26.726Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "9",
+    "object_repr": "Eu gosto de...",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 21,
+  "fields": {
+    "action_time": "2025-08-04T20:51:13.289Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "10",
+    "object_repr": "Eu gosto de chegar...",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 22,
+  "fields": {
+    "action_time": "2025-08-04T20:52:16.968Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "11",
+    "object_repr": "Um ótimo dia pra mim é quando...",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 23,
+  "fields": {
+    "action_time": "2025-08-04T20:53:09.961Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "12",
+    "object_repr": "Eu vejo a morte como...",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 24,
+  "fields": {
+    "action_time": "2025-08-04T21:07:36.557Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "13",
+    "object_repr": "Minha filosofia de vida é ...",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 25,
+  "fields": {
+    "action_time": "2025-08-04T21:08:16.872Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "14",
+    "object_repr": "Eu sempre gostei de ...",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 26,
+  "fields": {
+    "action_time": "2025-08-04T21:09:22.947Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "15",
+    "object_repr": "Eu gosto de mudanças se ...",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 27,
+  "fields": {
+    "action_time": "2025-08-04T21:10:08.677Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "16",
+    "object_repr": "Não existe nada de errado em ...",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 28,
+  "fields": {
+    "action_time": "2025-08-04T21:10:53.644Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "17",
+    "object_repr": "Eu gosto de buscar conselhos de ...",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 29,
+  "fields": {
+    "action_time": "2025-08-04T21:12:18.915Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "18",
+    "object_repr": "Meu lema é...",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 30,
+  "fields": {
+    "action_time": "2025-08-04T21:12:55.287Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "19",
+    "object_repr": "Eu gosto de ...",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 31,
+  "fields": {
+    "action_time": "2025-08-04T21:13:41.009Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "20",
+    "object_repr": "Tempo para mim é ...",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 32,
+  "fields": {
+    "action_time": "2025-08-04T21:15:24.488Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "21",
+    "object_repr": "Se eu fosse bilionário ...",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 33,
+  "fields": {
+    "action_time": "2025-08-04T21:16:24.061Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "22",
+    "object_repr": "Eu acredito que...",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 34,
+  "fields": {
+    "action_time": "2025-08-04T21:17:23.328Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "23",
+    "object_repr": "Eu acredito também que...",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 35,
+  "fields": {
+    "action_time": "2025-08-04T21:18:13.863Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "24",
+    "object_repr": "Eu acredito ainda que",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 36,
+  "fields": {
+    "action_time": "2025-08-04T21:19:18.578Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "25",
+    "object_repr": "Eu penso que ...",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 37,
+  "fields": {
+    "action_time": "2025-08-04T22:22:40.452Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "2",
+    "object_repr": "Garçom (Ori Centro)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 38,
+  "fields": {
+    "action_time": "2025-08-04T22:37:56.750Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "11",
+    "object_repr": "Garçom (Corporis Treinamento Funcional)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Replicar esta vaga para outras empresas\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 39,
+  "fields": {
+    "action_time": "2025-08-04T22:41:04.475Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "20",
+    "object_repr": "Cumim (Corporis Treinamento Funcional)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 40,
+  "fields": {
+    "action_time": "2025-08-04T22:42:27.860Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "29",
+    "object_repr": "Caixa (Corporis Treinamento Funcional)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 41,
+  "fields": {
+    "action_time": "2025-08-04T22:46:03.275Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "38",
+    "object_repr": "Bartender (Corporis Treinamento Funcional)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 42,
+  "fields": {
+    "action_time": "2025-08-04T22:47:11.874Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "47",
+    "object_repr": "Cozinheiro (a) (Corporis Treinamento Funcional)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 43,
+  "fields": {
+    "action_time": "2025-08-04T22:51:16.492Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "56",
+    "object_repr": "Auxiliar de Cozinha (Corporis Treinamento Funcional)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 44,
+  "fields": {
+    "action_time": "2025-08-04T22:52:15.364Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "65",
+    "object_repr": "Auxiliar de Limpeza (Corporis Treinamento Funcional)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 45,
+  "fields": {
+    "action_time": "2025-08-04T22:56:52.737Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "74",
+    "object_repr": "Montador de lanche (Corporis Treinamento Funcional)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 46,
+  "fields": {
+    "action_time": "2025-08-04T22:57:44.204Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "83",
+    "object_repr": "Chapeiro (Corporis Treinamento Funcional)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 47,
+  "fields": {
+    "action_time": "2025-08-04T23:02:23.867Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "46",
+    "object_repr": "Cozinheiro (a) (Colorindo Tintas)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 48,
+  "fields": {
+    "action_time": "2025-08-04T23:05:18.106Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "82",
+    "object_repr": "Chapeiro (Colorindo Tintas)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 49,
+  "fields": {
+    "action_time": "2025-08-04T23:05:18.127Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "73",
+    "object_repr": "Montador de lanche (Colorindo Tintas)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 50,
+  "fields": {
+    "action_time": "2025-08-04T23:05:18.148Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "64",
+    "object_repr": "Auxiliar de Limpeza (Colorindo Tintas)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 51,
+  "fields": {
+    "action_time": "2025-08-04T23:05:18.166Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "55",
+    "object_repr": "Auxiliar de Cozinha (Colorindo Tintas)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 52,
+  "fields": {
+    "action_time": "2025-08-04T23:05:18.184Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "37",
+    "object_repr": "Bartender (Colorindo Tintas)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 53,
+  "fields": {
+    "action_time": "2025-08-04T23:05:18.202Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "28",
+    "object_repr": "Caixa (Colorindo Tintas)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 54,
+  "fields": {
+    "action_time": "2025-08-04T23:05:18.221Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "19",
+    "object_repr": "Cumim (Colorindo Tintas)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 55,
+  "fields": {
+    "action_time": "2025-08-04T23:05:18.239Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "10",
+    "object_repr": "Garçom (Colorindo Tintas)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 56,
+  "fields": {
+    "action_time": "2025-08-04T23:06:00.464Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "83",
+    "object_repr": "Chapeiro (Corporis Treinamento Funcional)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 57,
+  "fields": {
+    "action_time": "2025-08-04T23:06:00.488Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "74",
+    "object_repr": "Montador de lanche (Corporis Treinamento Funcional)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 58,
+  "fields": {
+    "action_time": "2025-08-04T23:06:00.508Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "65",
+    "object_repr": "Auxiliar de Limpeza (Corporis Treinamento Funcional)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 59,
+  "fields": {
+    "action_time": "2025-08-04T23:06:00.527Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "56",
+    "object_repr": "Auxiliar de Cozinha (Corporis Treinamento Funcional)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 60,
+  "fields": {
+    "action_time": "2025-08-04T23:06:00.546Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "47",
+    "object_repr": "Cozinheiro (a) (Corporis Treinamento Funcional)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 61,
+  "fields": {
+    "action_time": "2025-08-04T23:06:00.567Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "38",
+    "object_repr": "Bartender (Corporis Treinamento Funcional)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 62,
+  "fields": {
+    "action_time": "2025-08-04T23:06:00.588Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "29",
+    "object_repr": "Caixa (Corporis Treinamento Funcional)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 63,
+  "fields": {
+    "action_time": "2025-08-04T23:06:00.607Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "20",
+    "object_repr": "Cumim (Corporis Treinamento Funcional)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 64,
+  "fields": {
+    "action_time": "2025-08-04T23:06:00.626Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "11",
+    "object_repr": "Garçom (Corporis Treinamento Funcional)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 65,
+  "fields": {
+    "action_time": "2025-08-04T23:08:56.250Z",
+    "user": 1,
+    "content_type": 12,
+    "object_id": "9",
+    "object_repr": "Corporis Treinamento Funcional - Kobrasol",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Nome da Empresa\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 66,
+  "fields": {
+    "action_time": "2025-08-04T23:09:14.089Z",
+    "user": 1,
+    "content_type": 12,
+    "object_id": "10",
+    "object_repr": "Corporis Treinamento Funcional - Ipiranga",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 67,
+  "fields": {
+    "action_time": "2025-08-05T18:10:16.438Z",
+    "user": 1,
+    "content_type": 12,
+    "object_id": "11",
+    "object_repr": "Ori Abraão",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 68,
+  "fields": {
+    "action_time": "2025-08-05T18:10:33.092Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "84",
+    "object_repr": "Chapeiro (Ori Abraão)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Replicar esta vaga para outras empresas\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 69,
+  "fields": {
+    "action_time": "2025-08-05T18:12:43.506Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "85",
+    "object_repr": "Montador de lanche (Ori Abraão)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Replicar esta vaga para outras empresas\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 70,
+  "fields": {
+    "action_time": "2025-08-05T18:15:03.414Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "86",
+    "object_repr": "Auxiliar de Limpeza (Ori Abraão)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Replicar esta vaga para outras empresas\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 71,
+  "fields": {
+    "action_time": "2025-08-05T18:15:12.431Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "87",
+    "object_repr": "Auxiliar de Cozinha (Ori Abraão)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Replicar esta vaga para outras empresas\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 72,
+  "fields": {
+    "action_time": "2025-08-05T18:31:23.826Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "88",
+    "object_repr": "Caixa (Ori Abraão)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Replicar esta vaga para outras empresas\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 73,
+  "fields": {
+    "action_time": "2025-08-05T19:23:50.170Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "6",
+    "object_repr": "Sutter - Chapeiro",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Status da Candidatura\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 74,
+  "fields": {
+    "action_time": "2025-08-05T20:40:08.554Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "7",
+    "object_repr": "S�nia regina da silva - Garçom",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Status da Candidatura\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 75,
+  "fields": {
+    "action_time": "2025-08-05T20:40:22.603Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "7",
+    "object_repr": "Sônia regina da silva - Garçom",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Status da Candidatura\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 76,
+  "fields": {
+    "action_time": "2025-08-05T20:41:27.153Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "1",
+    "object_repr": "Sutter - Garçom",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 77,
+  "fields": {
+    "action_time": "2025-08-06T14:41:28.972Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "2",
+    "object_repr": "Sutter - Garçom",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 78,
+  "fields": {
+    "action_time": "2025-08-06T15:10:05.427Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "6",
+    "object_repr": "Sônia regina da silva",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 79,
+  "fields": {
+    "action_time": "2025-08-06T15:10:05.458Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "5",
+    "object_repr": "pedrinho",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 80,
+  "fields": {
+    "action_time": "2025-08-06T15:10:05.479Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "4",
+    "object_repr": "pedrinho",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 81,
+  "fields": {
+    "action_time": "2025-08-06T15:10:05.500Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "3",
+    "object_repr": "Mayara",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 82,
+  "fields": {
+    "action_time": "2025-08-06T15:10:05.521Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "2",
+    "object_repr": "Sutter",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 83,
+  "fields": {
+    "action_time": "2025-08-06T15:10:05.544Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "1",
+    "object_repr": "Sutter",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 84,
+  "fields": {
+    "action_time": "2025-08-06T16:22:22.623Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "89",
+    "object_repr": "Auxiliar de Limpeza (Ori Abraão)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Replicar esta vaga para outras empresas\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 85,
+  "fields": {
+    "action_time": "2025-08-06T16:22:42.917Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "90",
+    "object_repr": "Bartender (Ori Abraão)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Replicar esta vaga para outras empresas\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 86,
+  "fields": {
+    "action_time": "2025-08-06T16:23:35.871Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "91",
+    "object_repr": "Garçom (Ori Abraão)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Replicar esta vaga para outras empresas\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 87,
+  "fields": {
+    "action_time": "2025-08-06T16:23:52.024Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "92",
+    "object_repr": "Cumim (Ori Abraão)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Replicar esta vaga para outras empresas\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 88,
+  "fields": {
+    "action_time": "2025-08-06T18:18:07.069Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "12",
+    "object_repr": "Mayara de Oliveira Zandonai - Chapeiro",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 89,
+  "fields": {
+    "action_time": "2025-08-06T18:18:07.174Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "11",
+    "object_repr": "Mayara de Oliveira Zandonai - Cumim",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 90,
+  "fields": {
+    "action_time": "2025-08-06T20:31:05.874Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "13",
+    "object_repr": "POLIANA HOLANDA AZEVEDO - Cozinheiro (a)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Status da Candidatura\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 91,
+  "fields": {
+    "action_time": "2025-08-06T20:46:18.582Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "10",
+    "object_repr": "Facundo Nahuel Pacheco Albornoz - Gar�om",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Status da Candidatura\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 92,
+  "fields": {
+    "action_time": "2025-08-06T20:54:54.568Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "10",
+    "object_repr": "Facundo Nahuel Pacheco Albornoz - Gar�om",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Notas Internas do Recrutador\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 93,
+  "fields": {
+    "action_time": "2025-08-06T20:54:54.968Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "10",
+    "object_repr": "Facundo Nahuel Pacheco Albornoz - Gar�om",
+    "action_flag": 2,
+    "change_message": "[]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 94,
+  "fields": {
+    "action_time": "2025-08-08T01:10:31.488Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "11",
+    "object_repr": "izaas",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$600000$ym2mgCiAnQzoVpIGvvUCEs$iF7Ky25At/1PFD0Bc/FA0XmqC8Xk+vJHpYGX9D1sW8w=",
+    "last_login": "2025-08-07T21:59:59.444Z",
+    "is_superuser": true,
+    "username": "sutter",
+    "first_name": "",
+    "last_name": "",
+    "email": "sutterdorns@gmail.com",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2025-08-04T14:05:53.622Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "071ooig4lz0kc5o116b72ommjmh3o69o",
+  "fields": {
+    "session_data": ".eJxVzDsOwjAQBNC7uEaWN_GXkp4zWN71ggPIkeKkQtwdR0oB7cybeYuYtrXErfESpyzOAsTpN8NET657kR-p3mdJc12XCeVO5NE2eZ0zvy6H_TsoqZW-9mB8UKSQQtZIHEZ2IxBadAOA0R6AXGJlPXkDXTt9G4JVWnUTGMTnC8sMNuM:1uj1RS:cn4-qxOLdIp41_K9z1RdrZVTF-Ij8uFdkLHe_VsYBqk",
+    "expire_date": "2025-08-18T20:05:54.036Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "462lvaqk6jrt81tb35629bvrq78s5x63",
+  "fields": {
+    "session_data": ".eJxVzDsOwjAQBNC7uEaWN_GXkp4zWN71ggPIkeKkQtwdR0oB7cybeYuYtrXErfESpyzOAsTpN8NET657kR-p3mdJc12XCeVO5NE2eZ0zvy6H_TsoqZW-9mB8UKSQQtZIHEZ2IxBadAOA0R6AXGJlPXkDXTt9G4JVWnUTGMTnC8sMNuM:1ujkfs:9Ly4GRjDO7dYOaks9Yw7NwtlcPDdV1_Ii6qt92jdGXA",
+    "expire_date": "2025-08-20T20:23:48.410Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "5lcy8zvr883l5f5l00zdzngr9l0ec8ns",
+  "fields": {
+    "session_data": ".eJxVzDsOwjAQBNC7uEaWN_GXkp4zWN71ggPIkeKkQtwdR0oB7cybeYuYtrXErfESpyzOAsTpN8NET657kR-p3mdJc12XCeVO5NE2eZ0zvy6H_TsoqZW-9mB8UKSQQtZIHEZ2IxBadAOA0R6AXGJlPXkDXTt9G4JVWnUTGMTnC8sMNuM:1ujOQj:jflQcMpJt2Xmo6DbrvUGftBhI_WJwqgUq-WknMGFb_s",
+    "expire_date": "2025-08-19T20:38:41.968Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "6w58tmkntc3g0z2kfp9e10j4c09hrwa5",
+  "fields": {
+    "session_data": ".eJxVzDsOwjAQBNC7uEaWN_GXkp4zWN71ggPIkeKkQtwdR0oB7cybeYuYtrXErfESpyzOAsTpN8NET657kR-p3mdJc12XCeVO5NE2eZ0zvy6H_TsoqZW-9mB8UKSQQtZIHEZ2IxBadAOA0R6AXGJlPXkDXTt9G4JVWnUTGMTnC8sMNuM:1uivq4:DWikoAny69fM7kDjAk2xKqedg1zgSgKiL4VImII8U5E",
+    "expire_date": "2025-08-18T14:06:56.930Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "ck8wazbxx1v1jq6ei8ineoujtcwjf89f",
+  "fields": {
+    "session_data": ".eJxVzDsOwjAQBNC7uEaWN_GXkp4zWN71ggPIkeKkQtwdR0oB7cybeYuYtrXErfESpyzOAsTpN8NET657kR-p3mdJc12XCeVO5NE2eZ0zvy6H_TsoqZW-9mB8UKSQQtZIHEZ2IxBadAOA0R6AXGJlPXkDXTt9G4JVWnUTGMTnC8sMNuM:1ujKP6:oAbgi1v7HNolWhvfaUDgzam_IqKrzclUFG3wo5slR9U",
+    "expire_date": "2025-08-19T16:20:44.819Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "ey8rvzmymbumwt8g5x779q1ktuzqmwl1",
+  "fields": {
+    "session_data": ".eJxVzDsOwjAQBNC7uEaWN_GXkp4zWN71ggPIkeKkQtwdR0oB7cybeYuYtrXErfESpyzOAsTpN8NET657kR-p3mdJc12XCeVO5NE2eZ0zvy6H_TsoqZW-9mB8UKSQQtZIHEZ2IxBadAOA0R6AXGJlPXkDXTt9G4JVWnUTGMTnC8sMNuM:1uk8eV:eFPBP9Z7-7vYRHsj_BbCsdoJr-0cHgNHGwp4aCq6zw4",
+    "expire_date": "2025-08-21T21:59:59.467Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "ipn64dlzw3g55rhl3xvg8nb6a7qx7bxy",
+  "fields": {
+    "session_data": ".eJxVzDsOwjAQBNC7uEaWN_GXkp4zWN71ggPIkeKkQtwdR0oB7cybeYuYtrXErfESpyzOAsTpN8NET657kR-p3mdJc12XCeVO5NE2eZ0zvy6H_TsoqZW-9mB8UKSQQtZIHEZ2IxBadAOA0R6AXGJlPXkDXTt9G4JVWnUTGMTnC8sMNuM:1ujkft:lpUG3ncVFilceve5G_XXuw3swKIu7lPjqXSuYSXQ9pg",
+    "expire_date": "2025-08-20T20:23:49.046Z"
+  }
+}
+]

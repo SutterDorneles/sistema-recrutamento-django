@@ -1,10 +1,9 @@
 # Em vagas/models.py
 
 from django.db import models
-from django.utils import timezone # Importamos o timezone
+from django.utils import timezone
 
 class Empresa(models.Model):
-    # ... (seu modelo Empresa continua o mesmo)
     nome = models.CharField(max_length=100, verbose_name="Nome da Empresa")
     logotipo = models.ImageField(upload_to='logotipos/', null=True, blank=True, verbose_name="Logotipo")
     descricao = models.TextField(blank=True, null=True, verbose_name="Sobre a Empresa")
@@ -12,7 +11,6 @@ class Empresa(models.Model):
     class Meta: verbose_name = "Empresa"; verbose_name_plural = "Empresas"
 
 class Vaga(models.Model):
-    # ... (seu modelo Vaga continua o mesmo)
     TURNO_CHOICES = [('Diurno', 'Diurno'), ('Noturno', 'Noturno'), ('Qualquer', 'Qualquer Turno')]
     CARGO_CHOICES = [
         ('Garçom', 'Garçom'), ('Cumim', 'Cumim'), ('Caixa', 'Caixa'), ('Bartender', 'Bartender'),
@@ -30,7 +28,6 @@ class Vaga(models.Model):
     def __str__(self): return f"{self.titulo} ({self.empresa.nome})"
 
 class Candidato(models.Model):
-    # ... (seu modelo Candidato continua o mesmo)
     nome = models.CharField(verbose_name="Nome Completo", max_length=100, default="Não informado")
     sexo = models.CharField(max_length=20, default="Não informado")
     cep = models.CharField(max_length=9, blank=True, null=True)
@@ -66,7 +63,6 @@ class Candidato(models.Model):
     def __str__(self): return self.nome
 
 class Funcionario(models.Model):
-    # ... (seu modelo Funcionario continua o mesmo)
     STATUS_CHOICES = [
         ('ativo', 'Ativo'),
         ('demitido', 'Demitido'),
@@ -82,7 +78,6 @@ class Funcionario(models.Model):
     def __str__(self): return self.perfil_candidato.nome
     class Meta: verbose_name = "Funcionário"; verbose_name_plural = "Funcionários"
 
-# --- NOVOS MODELOS PROXY PARA AS ABAS ---
 class FuncionarioAtivo(Funcionario):
     class Meta:
         proxy = True
@@ -100,10 +95,8 @@ class FuncionarioListaNegra(Funcionario):
         proxy = True
         verbose_name = "Funcionário em Lista Negra"
         verbose_name_plural = "Funcionários em Lista Negra"
-# ------------------------------------
 
 class Inscricao(models.Model):
-    # ... (seu modelo Inscricao continua o mesmo)
     STATUS_CHOICES = [
         ('recebida', 'Recebida'), ('em_analise', 'Em Análise'), ('entrevista', 'Entrevista Agendada'),
         ('aprovado', 'Aprovado'), ('rejeitado', 'Rejeitado'),
@@ -116,7 +109,6 @@ class Inscricao(models.Model):
     def __str__(self): return f'{self.candidato.nome} - {self.vaga.titulo}'
 
 class Pergunta(models.Model):
-    # ... (seu modelo Pergunta continua o mesmo)
     texto = models.CharField(max_length=255, verbose_name="Texto da Pergunta")
     alternativa_i = models.CharField(max_length=255, verbose_name="Alternativa (I - Águia)")
     alternativa_c = models.CharField(max_length=255, verbose_name="Alternativa (C - Gato)")
@@ -126,7 +118,6 @@ class Pergunta(models.Model):
     def __str__(self): return self.texto
 
 class RespostaCandidato(models.Model):
-    # ... (seu modelo RespostaCandidato continua o mesmo)
     PERFIL_CHOICES = [('I', 'I'), ('C', 'C'), ('A', 'A'), ('O', 'O')]
     candidato = models.ForeignKey(Candidato, on_delete=models.CASCADE)
     pergunta = models.ForeignKey(Pergunta, on_delete=models.CASCADE)
