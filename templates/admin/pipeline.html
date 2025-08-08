@@ -41,24 +41,28 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 5px;
         }
-        .candidate-card-actions a {
+        .btn-pipeline {
             font-size: 0.8em;
-            padding: 2px 6px;
-            border-radius: 3px;
-            background-color: #79aec8;
+            padding: 4px 8px;
+            border-radius: 4px;
             color: white;
             text-decoration: none;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
-        .candidate-card-actions a:hover {
-            background-color: #609ab6;
+        .btn-pipeline:hover {
+            opacity: 0.9;
+            text-decoration: none;
         }
-        .action-reject {
-            background-color: #dc3545 !important;
-        }
-        .action-reject:hover {
-            background-color: #c82333 !important;
-        }
+        .btn-next { background-color: #007bff; }
+        .btn-approve { background-color: #28a745; }
+        .btn-hire { background-color: #17a2b8; }
+        .btn-reject { background-color: #dc3545; }
     </style>
 {% endblock %}
 
@@ -82,6 +86,7 @@
     </div>
 
     {% if selected_vaga %}
+        <!-- CORREÇÃO: Corrigido o erro de digitação de 'class.' para 'class=' -->
         <div class="pipeline-grid">
             {% for status, inscricoes in pipeline_status.items %}
                 <div class="pipeline-column">
@@ -93,18 +98,19 @@
                             </a>
                             <small>Inscrito em: {{ inscricao.data_inscricao|date:"d/m/Y" }}</small>
 
-                            <!-- AÇÕES DE MUDANÇA DE STATUS -->
                             <div class="candidate-card-actions">
                                 {% if inscricao.status == 'recebida' %}
-                                    <a href="{% url 'admin:pipeline_change_status' inscricao.id 'em_analise' %}">→ Mover para Análise</a>
+                                    <a href="{% url 'admin:pipeline_change_status' inscricao.id 'em_analise' %}" class="btn-pipeline btn-next"><i class="fas fa-arrow-right"></i> Mover p/ Análise</a>
                                 {% elif inscricao.status == 'em_analise' %}
-                                    <a href="{% url 'admin:pipeline_change_status' inscricao.id 'entrevista' %}">→ Agendar Entrevista</a>
+                                    <a href="{% url 'admin:pipeline_change_status' inscricao.id 'entrevista' %}" class="btn-pipeline btn-next"><i class="fas fa-arrow-right"></i> Agendar Entrevista</a>
                                 {% elif inscricao.status == 'entrevista' %}
-                                    <a href="{% url 'admin:pipeline_change_status' inscricao.id 'aprovado' %}">→ Aprovar</a>
+                                    <a href="{% url 'admin:pipeline_change_status' inscricao.id 'aprovado' %}" class="btn-pipeline btn-approve"><i class="fas fa-check"></i> Aprovar</a>
+                                {% elif inscricao.status == 'aprovado' %}
+                                    <a href="{% url 'admin:pipeline_contratar' inscricao.id %}" class="btn-pipeline btn-hire"><i class="fas fa-user-tie"></i> Contratar</a>
                                 {% endif %}
 
                                 {% if inscricao.status != 'rejeitado' and inscricao.status != 'aprovado' %}
-                                    <a href="{% url 'admin:pipeline_change_status' inscricao.id 'rejeitado' %}" class="action-reject">Rejeitar</a>
+                                    <a href="{% url 'admin:pipeline_change_status' inscricao.id 'rejeitado' %}" class="btn-pipeline btn-reject"><i class="fas fa-times"></i></a>
                                 {% endif %}
                             </div>
                         </div>

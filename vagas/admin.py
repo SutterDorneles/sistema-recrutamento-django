@@ -2,7 +2,11 @@
 
 from django.contrib import admin, messages
 from django.db import models
-from .models import Vaga, Candidato, Inscricao, Pergunta, RespostaCandidato, Empresa 
+# Importamos os novos modelos
+from .models import (
+    Vaga, Candidato, Inscricao, Pergunta, RespostaCandidato, Empresa, Funcionario,
+    FuncionarioAtivo, FuncionarioDemitido, FuncionarioListaNegra
+)
 import csv
 from django.http import HttpResponse, HttpResponseRedirect
 from django.utils import timezone
@@ -12,17 +16,14 @@ from django.shortcuts import render, get_object_or_404
 from django import forms
 
 class MyDashboardAdminSite(admin.AdminSite):
-    # ... (código do dashboard continua o mesmo)
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
             path('', self.admin_view(self.dashboard_view), name='index'),
             path('pipeline/', self.admin_view(self.pipeline_view), name='pipeline'),
-            path(
-                'pipeline/change_status/<int:inscricao_id>/<str:new_status>/',
-                self.admin_view(self.change_status_view),
-                name='pipeline_change_status'
-            ),
+            path('pipeline/change_status/<int:inscricao_id>/<str:new_status>/', self.admin_view(self.change_status_view), name='pipeline_change_status'),
+            # NOVA ROTA PARA CONTRATAR PELO PIPELINE
+            path('pipeline/contratar/<int:inscricao_id>/', self.admin_view(self.pipeline_contratar_view), name='pipeline_contratar'),
         ]
         return custom_urls + urls
 
@@ -87,6 +88,27 @@ class MyDashboardAdminSite(admin.AdminSite):
         redirect_url = reverse('admin:pipeline') + f'?vaga_id={inscricao.vaga.id}'
         return HttpResponseRedirect(redirect_url)
 
+    def pipeline_contratar_view(self, request, inscricao_id):
+        inscricao = get_object_or_404(Inscricao, id=inscricao_id)
+        if inscricao.status == 'aprovado':
+            if not inscricao.candidato.contratado:
+                Funcionario.objects.create(
+                    perfil_candidato=inscricao.candidato,
+                    empresa=inscricao.vaga.empresa,
+                    cargo=inscricao.vaga.tipo_cargo or 'Não especificado',
+                    status='ativo'
+                )
+                inscricao.candidato.contratado = True
+                inscricao.candidato.save()
+                messages.success(request, f"{inscricao.candidato.nome} foi contratado com sucesso!")
+            else:
+                messages.warning(request, f"{inscricao.candidato.nome} já consta como contratado.")
+        else:
+            messages.error(request, "O candidato precisa de estar com o status 'Aprovado' para ser contratado.")
+        
+        redirect_url = reverse('admin:pipeline') + f'?vaga_id={inscricao.vaga.id}'
+        return HttpResponseRedirect(redirect_url)
+
 admin_site = MyDashboardAdminSite(name='myadmin')
 
 class InscricaoInline(admin.TabularInline):
@@ -128,34 +150,18 @@ class VagaAdmin(admin.ModelAdmin):
                     obj.save()
 
 class CandidatoAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'email', 'perfil_comportamental', 'cidade')
+    list_display = ('nome', 'email', 'perfil_comportamental', 'cidade', 'contratado')
     search_fields = ('nome', 'email', 'cidade')
-    list_filter = ('perfil_comportamental', 'cidade', 'preferencia_turno')
-    
-    # --- ALTERAÇÃO AQUI: Organização completa dos campos do candidato ---
+    list_filter = ('contratado', 'perfil_comportamental', 'cidade', 'preferencia_turno')
     fieldsets = (
-        ('Informações Principais', {
-            'fields': ('nome', 'email', 'contato', 'idade', 'sexo', 'estado_civil')
-        }),
-        ('Endereço e Moradia', {
-            'fields': ('cep', 'endereco', 'bairro', 'cidade', 'tempo_residencia', 'moradia', 'meio_locomocao')
-        }),
-        ('Informações Familiares', {
-            'classes': ('collapse',), # Esta secção começará recolhida
-            'fields': ('tem_filhos', 'qtd_filhos', 'idade_filhos', 'mora_com_filhos')
-        }),
-        ('Perfil Profissional e Pessoal', {
-            'fields': ('preferencia_cargo', 'preferencia_turno', 'melhor_trabalho', 'pontos_fortes', 'objetivo_curto_prazo', 'objetivo_longo_prazo', 'lazer', 'habitos', 'curriculo')
-        }),
-        ('Resultado do Teste de Perfil', {
-            'fields': () # Esta secção é preenchida pelo gráfico
-        }),
+        ('Informações Principais', {'fields': ('nome', 'email', 'contato', 'idade', 'sexo', 'estado_civil', 'contratado')}),
+        ('Endereço e Moradia', {'fields': ('cep', 'endereco', 'bairro', 'cidade', 'tempo_residencia', 'moradia', 'meio_locomocao')}),
+        ('Informações Familiares', {'classes': ('collapse',), 'fields': ('tem_filhos', 'qtd_filhos', 'idade_filhos', 'mora_com_filhos')}),
+        ('Perfil Profissional e Pessoal', {'fields': ('preferencia_cargo', 'preferencia_turno', 'melhor_trabalho', 'pontos_fortes', 'objetivo_curto_prazo', 'objetivo_longo_prazo', 'lazer', 'habitos', 'curriculo')}),
+        ('Resultado do Teste de Perfil', {'fields': ()}),
     )
-    # -----------------------------------------------------------------
-    
-    readonly_fields = ('perfil_comportamental', 'total_i', 'total_c', 'total_a', 'total_o')
+    readonly_fields = ('perfil_comportamental', 'total_i', 'total_c', 'total_a', 'total_o', 'contratado')
     change_form_template = 'admin/vagas/candidato/change_form.html'
-    
     def change_view(self, request, object_id, form_url='', extra_context=None):
         extra_context = extra_context or {}
         candidato = self.get_object(request, object_id)
@@ -178,7 +184,11 @@ class InscricaoAdmin(admin.ModelAdmin):
     list_filter = ('vaga__empresa__nome', 'status', 'data_inscricao')
     search_fields = ('candidato__nome', 'candidato__email', 'vaga__titulo')
     list_editable = ('status',)
-    actions = ['marcar_como_em_analise', 'marcar_como_entrevista', 'marcar_como_aprovado', 'marcar_como_rejeitado', 'exportar_para_csv']
+    actions = [
+        'marcar_como_em_analise', 'marcar_como_entrevista', 
+        'marcar_como_aprovado', 'marcar_como_rejeitado',
+        'exportar_para_csv'
+    ]
     def marcar_como_em_analise(self, request, queryset):
         queryset.update(status='em_analise')
         self.message_user(request, f"{queryset.count()} inscrições foram marcadas como 'Em Análise'.")
@@ -232,9 +242,37 @@ class EmpresaAdmin(admin.ModelAdmin):
     list_display = ('nome',)
     search_fields = ('nome',)
 
-admin_site.register(Empresa, EmpresaAdmin)
+class FuncionarioAdmin(admin.ModelAdmin):
+    list_display = ('perfil_candidato', 'empresa', 'cargo', 'status', 'data_admissao', 'data_demissao')
+    list_filter = ('status', 'empresa', 'cargo')
+    search_fields = ('perfil_candidato__nome', 'perfil_candidato__email', 'cargo')
+    list_editable = ('status',)
+    readonly_fields = ('perfil_candidato', 'empresa', 'cargo', 'data_admissao')
+
+    def save_model(self, request, obj, form, change):
+        if 'status' in form.changed_data and obj.status == 'demitido' and not obj.data_demissao:
+            obj.data_demissao = timezone.now().date()
+        super().save_model(request, obj, form, change)
+
+class FuncionarioAtivoAdmin(FuncionarioAdmin):
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(status='ativo')
+
+class FuncionarioDemitidoAdmin(FuncionarioAdmin):
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(status='demitido')
+
+class FuncionarioListaNegraAdmin(FuncionarioAdmin):
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(status='lista_negra')
+
 admin_site.register(Vaga, VagaAdmin)
 admin_site.register(Candidato, CandidatoAdmin)
 admin_site.register(Inscricao, InscricaoAdmin)
 admin_site.register(Pergunta, PerguntaAdmin)
 admin_site.register(RespostaCandidato, RespostaCandidatoAdmin)
+admin_site.register(Empresa, EmpresaAdmin)
+admin_site.register(Funcionario, FuncionarioAdmin)
+admin_site.register(FuncionarioAtivo, FuncionarioAtivoAdmin)
+admin_site.register(FuncionarioDemitido, FuncionarioDemitidoAdmin)
+admin_site.register(FuncionarioListaNegra, FuncionarioListaNegraAdmin)
