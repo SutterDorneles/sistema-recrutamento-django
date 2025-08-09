@@ -239,7 +239,10 @@ class RespostaCandidatoAdmin(admin.ModelAdmin):
     get_texto_pergunta.short_description = 'Texto da Pergunta'
 
 class EmpresaAdmin(admin.ModelAdmin):
-    list_display = ('nome',)
+    # --- ALTERAÇÃO AQUI ---
+    list_display = ('nome', 'ordem') # Adicionamos a coluna 'ordem'
+    list_editable = ('ordem',)      # Tornamos a coluna 'ordem' editável na lista
+    # ----------------------
     search_fields = ('nome',)
 
 class FuncionarioAdmin(admin.ModelAdmin):

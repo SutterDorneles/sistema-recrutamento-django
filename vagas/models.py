@@ -7,8 +7,20 @@ class Empresa(models.Model):
     nome = models.CharField(max_length=100, verbose_name="Nome da Empresa")
     logotipo = models.ImageField(upload_to='logotipos/', null=True, blank=True, verbose_name="Logotipo")
     descricao = models.TextField(blank=True, null=True, verbose_name="Sobre a Empresa")
-    def __str__(self): return self.nome
-    class Meta: verbose_name = "Empresa"; verbose_name_plural = "Empresas"
+    # --- CAMPO ADICIONADO PARA ORDENAÇÃO ---
+    ordem = models.PositiveIntegerField(default=0, verbose_name="Ordem de Exibição")
+    # ------------------------------------
+
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name = "Empresa"
+        verbose_name_plural = "Empresas"
+        # --- ORDENAÇÃO PADRÃO ADICIONADA ---
+        # Isto garante que as empresas serão sempre listadas por este campo.
+        ordering = ['ordem']
+        # ---------------------------------
 
 class Vaga(models.Model):
     TURNO_CHOICES = [('Diurno', 'Diurno'), ('Noturno', 'Noturno'), ('Qualquer', 'Qualquer Turno')]
