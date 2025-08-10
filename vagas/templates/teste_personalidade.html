@@ -4,7 +4,7 @@
 
 {% block content %}
     <h1>Avaliação de Perfil Comportamental</h1>
-    <p>Olá, {{ candidato.nome }}. Para cada pergunta, marque a alternativa que **mais se identifica com você**.</p>
+    <p>Olá, {{ candidato.nome }}. Para cada pergunta, marque a alternativa que mais se identifica com você.</p>
     <hr>
 
     <form method="post">
@@ -12,11 +12,11 @@
         
         {% for pergunta in perguntas %}
             <div class="pergunta-bloco">
-                <!-- CORREÇÃO: Adicionado o texto da pergunta aqui -->
                 <h3>{{ forloop.counter }}. {{ pergunta.texto }}</h3>
                 
                 <div class="alternativas">
                     <label class="alternativa-label">
+                        <!-- CORREÇÃO: Adicionado o atributo 'required' -->
                         <input type="radio" name="pergunta_{{ pergunta.id }}" value="I" required>
                         <span>{{ pergunta.alternativa_i }}</span>
                     </label>
