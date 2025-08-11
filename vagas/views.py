@@ -80,7 +80,7 @@ def candidatar(request, vaga_id):
                         f"Para ver os detalhes da inscrição, aceda ao link:\n{link_inscricao}"
                     )
                     # IMPORTANTE: Substitua pelo e-mail real do recrutador
-                    email_do_recrutador = ['seu-email-de-recrutador@exemplo.com']
+                    email_do_recrutador = ['sutterdorns@gmail.com']
                     send_mail(
                         assunto_recrutador,
                         mensagem_recrutador,
