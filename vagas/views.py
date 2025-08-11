@@ -16,7 +16,7 @@ def lista_empresas(request):
         'empresas': empresas,
         'titulo_pagina': 'Escolha uma Empresa'
     }
-    return render(request, 'lista_empresas.html', contexto)
+    return render(request, 'vagas/lista_empresas.html', contexto)
 
 def lista_vagas(request, empresa_id):
     empresa = get_object_or_404(Empresa, id=empresa_id)
@@ -33,11 +33,11 @@ def lista_vagas(request, empresa_id):
         'empresa': empresa,
         'titulo_pagina': f'Vagas em {empresa.nome}'
     }
-    return render(request, 'lista_vagas.html', contexto)
+    return render(request, 'vagas/lista_vagas.html', contexto)
 
 def detalhes_vaga(request, vaga_id):
     vaga = get_object_or_404(Vaga, id=vaga_id)
-    return render(request, 'detalhes_vaga.html', {'vaga': vaga})
+    return render(request, 'vagas/detalhes_vaga.html', {'vaga': vaga})
 
 def candidatar(request, vaga_id):
     vaga = get_object_or_404(Vaga, id=vaga_id)
@@ -94,7 +94,7 @@ def candidatar(request, vaga_id):
             return redirect('realizar_teste', candidato_id=candidato.id)
     else:
         form = CandidaturaForm()
-    return render(request, 'formulario_candidatura.html', {'vaga': vaga, 'form': form})
+    return render(request, 'vagas/formulario_candidatura.html', {'vaga': vaga, 'form': form})
 
 def realizar_teste(request, candidato_id):
     candidato = get_object_or_404(Candidato, id=candidato_id)
@@ -116,7 +116,7 @@ def realizar_teste(request, candidato_id):
         'perguntas': perguntas,
         'titulo_pagina': 'Teste de Perfil Comportamental'
     }
-    return render(request, 'teste_personalidade.html', contexto)
+    return render(request, 'vagas/teste_personalidade.html', contexto)
 
 def calcular_e_salvar_perfil(candidato):
     contagem_perfis = RespostaCandidato.objects.filter(candidato=candidato).values('perfil_escolhido').annotate(total=Count('perfil_escolhido'))
@@ -147,4 +147,4 @@ def calcular_e_salvar_perfil(candidato):
 
 def confirmacao(request, vaga_id):
     vaga = get_object_or_404(Vaga, id=vaga_id)
-    return render(request, 'confirmacao.html', {'vaga': vaga})
+    return render(request, 'vagas/confirmacao.html', {'vaga': vaga})
