@@ -104,11 +104,20 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Configuração de E-mail para Produção
+# Configuração de E-mail e Segurança para Produção
 if not DEBUG:
+    # E-mail
     EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
     SENDGRID_API_KEY = config('SENDGRID_API_KEY')
     DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
+
+    # Segurança HTTPS
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000 # 1 ano
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
