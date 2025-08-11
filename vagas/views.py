@@ -52,50 +52,47 @@ def candidatar(request, vaga_id):
             if not Inscricao.objects.filter(vaga=vaga, candidato=candidato).exists():
                 inscricao = Inscricao.objects.create(vaga=vaga, candidato=candidato)
                 
-                # --- LÓGICA DE ENVIO DE E-MAIL DUPLO ---
-                try:
-                    # 1. E-mail de confirmação para o candidato
-                    assunto_candidato = f"Confirmação de Candidatura: {vaga.titulo}"
-                    mensagem_candidato = (
-                        f"Olá, {candidato.nome}!\n\n"
-                        f"Recebemos a sua candidatura para a vaga de '{vaga.titulo}' na empresa {vaga.empresa.nome}.\n\n"
-                        "O seu perfil será analisado e entraremos em contacto caso seja selecionado para as próximas etapas.\n\n"
-                        "Agradecemos o seu interesse!\n"
-                        "Atenciosamente,\nEquipe de Recrutamento"
-                    )
-                    send_mail(
-                        assunto_candidato,
-                        mensagem_candidato,
-                        settings.DEFAULT_FROM_EMAIL,
-                        [candidato.email] # E-mail do candidato
-                    )
+                # --- LÓGICA DE ENVIO DE E-MAIL (SEM TRY/EXCEPT PARA DEPURAÇÃO) ---
+                # 1. E-mail de confirmação para o candidato
+                assunto_candidato = f"Confirmação de Candidatura: {vaga.titulo}"
+                mensagem_candidato = (
+                    f"Olá, {candidato.nome}!\n\n"
+                    f"Recebemos a sua candidatura para a vaga de '{vaga.titulo}' na empresa {vaga.empresa.nome}.\n\n"
+                    "O seu perfil será analisado e entraremos em contacto caso seja selecionado para as próximas etapas.\n\n"
+                    "Agradecemos o seu interesse!\n"
+                    "Atenciosamente,\nEquipe de Recrutamento"
+                )
+                send_mail(
+                    assunto_candidato,
+                    mensagem_candidato,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [candidato.email]
+                )
 
-                    # 2. E-mail de notificação para o recrutador
-                    link_inscricao = request.build_absolute_uri(
-                        reverse('admin:vagas_inscricao_change', args=[inscricao.id])
-                    )
-                    assunto_recrutador = f"Nova candidatura para '{vaga.titulo}': {candidato.nome}"
-                    mensagem_recrutador = (
-                        f"Uma nova candidatura foi recebida de '{candidato.nome}' para a vaga '{vaga.titulo}'.\n\n"
-                        f"Para ver os detalhes da inscrição, aceda ao link:\n{link_inscricao}"
-                    )
-                    # IMPORTANTE: Substitua pelo e-mail real do recrutador
-                    email_do_recrutador = ['sutterdorns@gmail.com']
-                    send_mail(
-                        assunto_recrutador,
-                        mensagem_recrutador,
-                        settings.DEFAULT_FROM_EMAIL,
-                        email_do_recrutador
-                    )
-                except Exception as e:
-                    print(f"Ocorreu um erro ao tentar enviar os e-mails: {e}")
-                # --- FIM DA LÓGICA ---
+                # 2. E-mail de notificação para o recrutador
+                link_inscricao = request.build_absolute_uri(
+                    reverse('admin:vagas_inscricao_change', args=[inscricao.id])
+                )
+                assunto_recrutador = f"Nova candidatura para '{vaga.titulo}': {candidato.nome}"
+                mensagem_recrutador = (
+                    f"Uma nova candidatura foi recebida de '{candidato.nome}' para a vaga '{vaga.titulo}'.\n\n"
+                    f"Para ver os detalhes da inscrição, aceda ao link:\n{link_inscricao}"
+                )
+                email_do_recrutador = ['seu-email-de-recrutador@exemplo.com'] # Lembre-se de alterar
+                send_mail(
+                    assunto_recrutador,
+                    mensagem_recrutador,
+                    settings.DEFAULT_FROM_EMAIL,
+                    email_do_recrutador
+                )
+                # --- FIM DA LÓGICA DE E-MAIL ---
             
             return redirect('realizar_teste', candidato_id=candidato.id)
     else:
         form = CandidaturaForm()
     return render(request, 'vagas/formulario_candidatura.html', {'vaga': vaga, 'form': form})
 
+# ... (O resto das suas views continua igual)
 def realizar_teste(request, candidato_id):
     candidato = get_object_or_404(Candidato, id=candidato_id)
     perguntas = Pergunta.objects.filter(ativo=True)
@@ -116,8 +113,7 @@ def realizar_teste(request, candidato_id):
         'perguntas': perguntas,
         'titulo_pagina': 'Teste de Perfil Comportamental'
     }
-    # CORREÇÃO: Removido o 'vagas/' do caminho
-    return render(request, 'teste_personalidade.html', contexto)
+    return render(request, 'vagas/teste_personalidade.html', contexto)
 
 def calcular_e_salvar_perfil(candidato):
     contagem_perfis = RespostaCandidato.objects.filter(candidato=candidato).values('perfil_escolhido').annotate(total=Count('perfil_escolhido'))
