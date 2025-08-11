@@ -9,11 +9,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
+# --- ALLOWED_HOSTS ATUALIZADO COM O SEU NOVO DOMÍNIO ---
 ALLOWED_HOSTS = [
-    '127.0.0.1',
-    'localhost',
     'sutter.pythonanywhere.com',
+    'www.rhori.com.br', # <-- SUBSTITUA PELO SEU DOMÍNIO REAL
+    'rhori.com.br',     # <-- Adicione também a versão sem 'www'
 ]
+# --- FIM DA ATUALIZAÇÃO ---
+
 
 # Application definition
 INSTALLED_APPS = [
@@ -58,9 +61,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'recrutamento.wsgi.application'
 
-
-# --- CONFIGURAÇÃO DA BASE DE DADOS PARA PRODUÇÃO (MYSQL) ---
-# Verifica se estamos a correr no PythonAnywhere
+# Configuração da Base de Dados para Produção (MySQL)
 if 'PYTHONANYWHERE_DOMAIN' in os.environ:
     DATABASES = {
         'default': {
@@ -80,8 +81,6 @@ else:
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-# --- FIM DA CONFIGURAÇÃO ---
-
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -112,7 +111,6 @@ if not DEBUG:
     DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
 
 JAZZMIN_SETTINGS = {
     "site_title": "Painel de Recrutamento",
