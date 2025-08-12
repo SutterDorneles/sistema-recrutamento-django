@@ -60,6 +60,21 @@ def lista_empresas(request):
     }
     return render(request, 'vagas/lista_empresas.html', contexto)
 
+# Adicione esta nova função ao seu vagas/views.py
+def detalhe_empresa(request, empresa_id):
+    """
+    Esta view busca uma empresa específica e todas as suas vagas ativas.
+    """
+    empresa = get_object_or_404(Empresa, id=empresa_id)
+    vagas_da_empresa = Vaga.objects.filter(empresa=empresa).order_by('-data_criacao')
+
+    contexto = {
+        'empresa': empresa,
+        'vagas': vagas_da_empresa,
+        'titulo_pagina': f'Sobre a {empresa.nome}'
+    }
+    return render(request, 'vagas/detalhe_empresa.html', contexto)
+
 def lista_vagas(request, empresa_id):
     empresa = get_object_or_404(Empresa, id=empresa_id)
     query = request.GET.get('q')

@@ -13,4 +13,6 @@ urlpatterns = [
     path('vaga/<int:vaga_id>/candidatar/', views.candidatar, name='candidatar'),
     path('candidato/<int:candidato_id>/teste/', views.realizar_teste, name='realizar_teste'),
     path('vaga/<int:vaga_id>/confirmacao/', views.confirmacao, name='confirmacao'),
+    # Adicione esta nova rota ao seu vagas/urls.py
+    path('empresa/<int:empresa_id>/', views.detalhe_empresa, name='detalhe_empresa'),
 ]

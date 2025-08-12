@@ -3,16 +3,37 @@
 {% block title %}{{ titulo_pagina }}{% endblock %}
 
 {% block content %}
-    <!-- Mostra o nome da empresa no título -->
-    <h1>🔍 Vagas Abertas em: {{ empresa.nome }}</h1>
+    <div class="header-vagas">
+        <h1>🔍 Vagas Abertas em: {{ empresa.nome }}</h1>
+        <!-- NOVO LINK "SAIBA MAIS" -->
+        <a href="{% url 'detalhe_empresa' empresa.id %}" class="btn-saiba-mais">Saiba mais sobre a empresa</a>
+    </div>
 
-    <!-- O formulário de busca agora precisa de saber o ID da empresa -->
     <form method="get" action="{% url 'lista_vagas' empresa.id %}" class="form-busca">
         <input type="text" name="q" placeholder="Buscar por cargo, tecnologia, etc..." value="{{ request.GET.q }}">
         <button type="submit" class="btn">Buscar</button>
     </form>
 
     <style>
+        .header-vagas {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .btn-saiba-mais {
+            padding: 8px 8px 16px;
+            background-color: #e9ecef;
+            color: #495057;
+            border-radius: 40px;
+            font-size: 0.9em;
+            text-decoration: none;
+            text-align:center;
+        }
+        .btn-saiba-mais:hover {
+            background-color: #dee2e6;
+            text-decoration: none;
+        }
         .form-busca {
             display: flex;
             gap: 10px;
@@ -52,6 +73,5 @@
         <p>Nenhuma vaga encontrada para sua busca.</p>
     {% endfor %}
 
-    <!-- Link de "voltar" corrigido -->
     <a href="{% url 'lista_empresas' %}" class="voltar-link">&larr; Voltar para a lista de empresas</a>
 {% endblock %}

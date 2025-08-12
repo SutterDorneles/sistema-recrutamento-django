@@ -5,7 +5,7 @@ from django.db import models
 # Importamos os novos modelos
 from .models import (
     Vaga, Candidato, Inscricao, Pergunta, RespostaCandidato, Empresa, Funcionario,
-    FuncionarioAtivo, FuncionarioDemitido, FuncionarioListaNegra
+    FuncionarioAtivo, FuncionarioDemitido, FuncionarioComObservacao
 )
 import csv
 from django.http import HttpResponse, HttpResponseRedirect
@@ -265,9 +265,9 @@ class FuncionarioDemitidoAdmin(FuncionarioAdmin):
     def get_queryset(self, request):
         return super().get_queryset(request).filter(status='demitido')
 
-class FuncionarioListaNegraAdmin(FuncionarioAdmin):
+class FuncionarioComObservacaoAdmin(FuncionarioAdmin):
     def get_queryset(self, request):
-        return super().get_queryset(request).filter(status='lista_negra')
+        return super().get_queryset(request).filter(status='observacao')
 
 admin_site.register(Vaga, VagaAdmin)
 admin_site.register(Candidato, CandidatoAdmin)
@@ -278,4 +278,4 @@ admin_site.register(Empresa, EmpresaAdmin)
 admin_site.register(Funcionario, FuncionarioAdmin)
 admin_site.register(FuncionarioAtivo, FuncionarioAtivoAdmin)
 admin_site.register(FuncionarioDemitido, FuncionarioDemitidoAdmin)
-admin_site.register(FuncionarioListaNegra, FuncionarioListaNegraAdmin)
+admin_site.register(FuncionarioComObservacao, FuncionarioComObservacaoAdmin)

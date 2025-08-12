@@ -78,7 +78,7 @@ class Funcionario(models.Model):
     STATUS_CHOICES = [
         ('ativo', 'Ativo'),
         ('demitido', 'Demitido'),
-        ('lista_negra', 'Lista Negra'),
+        ('observacao', 'Com Observação'),
     ]
     perfil_candidato = models.OneToOneField(Candidato, on_delete=models.CASCADE, primary_key=True)
     empresa = models.ForeignKey(Empresa, on_delete=models.SET_NULL, null=True, blank=True)
@@ -102,11 +102,11 @@ class FuncionarioDemitido(Funcionario):
         verbose_name = "Funcionário Demitido"
         verbose_name_plural = "Funcionários Demitidos"
 
-class FuncionarioListaNegra(Funcionario):
+class FuncionarioComObservacao(Funcionario):
     class Meta:
         proxy = True
-        verbose_name = "Funcionário em Lista Negra"
-        verbose_name_plural = "Funcionários em Lista Negra"
+        verbose_name = "Funcionário Com Observação"
+        verbose_name_plural = "Funcionários com Observação"
 
 class Inscricao(models.Model):
     STATUS_CHOICES = [
