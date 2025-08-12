@@ -12,8 +12,8 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 # --- ALLOWED_HOSTS ATUALIZADO ---
 ALLOWED_HOSTS = [
     'sutter.pythonanywhere.com',
-    'www.seunovodominio.com.br', # Lembre-se de substituir pelo seu domínio real
-    'seunovodominio.com.br',     # E a versão sem 'www'
+    'www.rhori.com.br', # Lembre-se de substituir pelo seu domínio real
+    'rhori.com.',     # E a versão sem 'www'
     '127.0.0.1',                 # Adicionado para permitir o acesso local
     'localhost',
 ]
