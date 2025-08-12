@@ -9,10 +9,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     
+    <!-- ADICIONADO O LINK PARA O FAVICON -->
+    <link rel="icon" href="{% static 'vagas/images/favicon.png' %}" type="image/png">
+    
     <title>{% block title %}Sistema de Recrutamento{% endblock %}</title>
 
     <style>
-        /* Reset básico e definição da fonte */
+        /* ... (o seu CSS continua o mesmo) ... */
         :root {
             --cor-primaria: #005A9C;
             --cor-secundaria: #25D366;
@@ -21,7 +24,6 @@
             --cor-cartao: #ffffff;
             --sombra-suave: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--cor-fundo);
@@ -34,11 +36,9 @@
             min-height: 100vh;
             box-sizing: border-box;
         }
-
-        /* Container principal */
         .container {
             max-width: 800px;
-            margin: 0 auto; /* Centra o container e remove margem superior/inferior extra */
+            margin: 0 auto;
             padding: 30px;
             background-color: var(--cor-cartao);
             border-radius: 12px;
@@ -47,14 +47,10 @@
             width: 100%;
             box-sizing: border-box;
         }
-
-        /* Títulos */
         h1, h2, h3 {
             color: var(--cor-primaria);
             margin-top: 0;
         }
-
-        /* Links */
         a {
             color: var(--cor-primaria);
             text-decoration: none;
@@ -63,8 +59,6 @@
         a:hover {
             text-decoration: underline;
         }
-
-        /* Botões */
         .btn {
             display: inline-block;
             background-color: var(--cor-primaria);
@@ -81,8 +75,6 @@
             background-color: #004170;
             text-decoration: none;
         }
-
-        /* Formulários */
         form p {
             margin-bottom: 15px;
         }
@@ -98,8 +90,6 @@
             border-radius: 8px;
             box-sizing: border-box;
         }
-
-        /* Estilos para o Rodapé */
         footer {
             text-align: center;
             padding: 20px 0;
@@ -107,7 +97,6 @@
             font-size: 0.9em;
             color: #777;
         }
-        
     </style>
 </head>
 <body>
