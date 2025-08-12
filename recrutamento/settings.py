@@ -9,11 +9,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-# --- ALLOWED_HOSTS ATUALIZADO COM O SEU NOVO DOMÍNIO ---
+# --- ALLOWED_HOSTS ATUALIZADO ---
 ALLOWED_HOSTS = [
     'sutter.pythonanywhere.com',
-    'www.rhori.com.br', # <-- SUBSTITUA PELO SEU DOMÍNIO REAL
-    'rhori.com.br',     # <-- Adicione também a versão sem 'www'
+    'www.seunovodominio.com.br', # Lembre-se de substituir pelo seu domínio real
+    'seunovodominio.com.br',     # E a versão sem 'www'
+    '127.0.0.1',                 # Adicionado para permitir o acesso local
+    'localhost',
 ]
 # --- FIM DA ATUALIZAÇÃO ---
 

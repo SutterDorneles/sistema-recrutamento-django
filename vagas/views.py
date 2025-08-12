@@ -10,13 +10,54 @@ from django.conf import settings
 from django.db.models import Q, Count
 from django.urls import reverse
 
+def _enviar_emails_candidatura(request, inscricao):
+    """Função auxiliar para enviar os e-mails após a conclusão do teste."""
+    try:
+        candidato = inscricao.candidato
+        vaga = inscricao.vaga
+
+        # 1. E-mail de confirmação para o candidato
+        assunto_candidato = f"Confirmação de Candidatura: {vaga.titulo}"
+        mensagem_candidato = (
+            f"Olá, {candidato.nome}!\n\n"
+            f"Recebemos a sua candidatura para a vaga de '{vaga.titulo}' na empresa {vaga.empresa.nome}.\n\n"
+            "O seu perfil será analisado e entraremos em contacto caso seja selecionado para as próximas etapas.\n\n"
+            "Agradecemos o seu interesse!\n"
+            "Atenciosamente,\nEquipe de Recrutamento"
+        )
+        send_mail(
+            assunto_candidato,
+            mensagem_candidato,
+            settings.DEFAULT_FROM_EMAIL,
+            [candidato.email]
+        )
+
+        # 2. E-mail de notificação para o recrutador
+        link_inscricao = request.build_absolute_uri(
+            reverse('admin:vagas_inscricao_change', args=[inscricao.id])
+        )
+        assunto_recrutador = f"Nova candidatura para '{vaga.titulo}': {candidato.nome}"
+        mensagem_recrutador = (
+            f"Uma nova candidatura foi recebida de '{candidato.nome}' para a vaga '{vaga.titulo}'.\n\n"
+            f"Para ver os detalhes da inscrição, aceda ao link:\n{link_inscricao}"
+        )
+        email_do_recrutador = ['sutterdorneles@gmail.com'] # Lembre-se de alterar se necessário
+        send_mail(
+            assunto_recrutador,
+            mensagem_recrutador,
+            settings.DEFAULT_FROM_EMAIL,
+            email_do_recrutador
+        )
+    except Exception as e:
+        # Se houver um erro no envio, ele será impresso no server.log, mas o site não irá quebrar
+        print(f"Ocorreu um erro ao tentar enviar os e-mails: {e}")
+
 def lista_empresas(request):
     empresas = Empresa.objects.all()
     contexto = {
         'empresas': empresas,
         'titulo_pagina': 'Escolha uma Empresa'
     }
-    # CORREÇÃO: Restaurado o caminho correto do template
     return render(request, 'vagas/lista_empresas.html', contexto)
 
 def lista_vagas(request, empresa_id):
@@ -34,12 +75,10 @@ def lista_vagas(request, empresa_id):
         'empresa': empresa,
         'titulo_pagina': f'Vagas em {empresa.nome}'
     }
-    # CORREÇÃO: Restaurado o caminho correto do template
     return render(request, 'vagas/lista_vagas.html', contexto)
 
 def detalhes_vaga(request, vaga_id):
     vaga = get_object_or_404(Vaga, id=vaga_id)
-    # CORREÇÃO: Restaurado o caminho correto do template
     return render(request, 'vagas/detalhes_vaga.html', {'vaga': vaga})
 
 def candidatar(request, vaga_id):
@@ -52,57 +91,27 @@ def candidatar(request, vaga_id):
                 email=email_candidato,
                 defaults=form.cleaned_data
             )
+            # Apenas cria a inscrição se não existir
             if not Inscricao.objects.filter(vaga=vaga, candidato=candidato).exists():
-                inscricao = Inscricao.objects.create(vaga=vaga, candidato=candidato)
-                
-                # --- LÓGICA DE ENVIO DE E-MAIL (COM TRY/EXCEPT) ---
-                try:
-                    # 1. E-mail de confirmação para o candidato
-                    assunto_candidato = f"Confirmação de Candidatura: {vaga.titulo}"
-                    mensagem_candidato = (
-                        f"Olá, {candidato.nome}!\n\n"
-                        f"Recebemos a sua candidatura para a vaga de '{vaga.titulo}' na empresa {vaga.empresa.nome}.\n\n"
-                        "O seu perfil será analisado e entraremos em contacto caso seja selecionado para as próximas etapas.\n\n"
-                        "Agradecemos o seu interesse!\n"
-                        "Atenciosamente,\nEquipe de Recrutamento"
-                    )
-                    send_mail(
-                        assunto_candidato,
-                        mensagem_candidato,
-                        settings.DEFAULT_FROM_EMAIL,
-                        [candidato.email]
-                    )
-
-                    # 2. E-mail de notificação para o recrutador
-                    link_inscricao = request.build_absolute_uri(
-                        reverse('admin:vagas_inscricao_change', args=[inscricao.id])
-                    )
-                    assunto_recrutador = f"Nova candidatura para '{vaga.titulo}': {candidato.nome}"
-                    mensagem_recrutador = (
-                        f"Uma nova candidatura foi recebida de '{candidato.nome}' para a vaga '{vaga.titulo}'.\n\n"
-                        f"Para ver os detalhes da inscrição, aceda ao link:\n{link_inscricao}"
-                    )
-                    email_do_recrutador = ['seu-email-de-recrutador@exemplo.com'] # Lembre-se de alterar
-                    send_mail(
-                        assunto_recrutador,
-                        mensagem_recrutador,
-                        settings.DEFAULT_FROM_EMAIL,
-                        email_do_recrutador
-                    )
-                except Exception as e:
-                    # Se houver um erro no envio, ele será impresso no server.log, mas o site não irá quebrar
-                    print(f"Ocorreu um erro ao tentar enviar os e-mails: {e}")
-                # --- FIM DA LÓGICA DE E-MAIL ---
+                Inscricao.objects.create(vaga=vaga, candidato=candidato)
             
+            # Redireciona para o teste SEM enviar e-mail
             return redirect('realizar_teste', candidato_id=candidato.id)
     else:
         form = CandidaturaForm()
-    # CORREÇÃO: Restaurado o caminho correto do template
     return render(request, 'vagas/formulario_candidatura.html', {'vaga': vaga, 'form': form})
 
 def realizar_teste(request, candidato_id):
     candidato = get_object_or_404(Candidato, id=candidato_id)
     perguntas = Pergunta.objects.filter(ativo=True)
+    
+    # Encontra a última inscrição do candidato para associar ao e-mail
+    try:
+        ultima_inscricao = Inscricao.objects.filter(candidato=candidato).latest('data_inscricao')
+    except Inscricao.DoesNotExist:
+        # Lida com o caso raro de não haver inscrição (pode redirecionar ou mostrar erro)
+        return redirect('lista_empresas')
+
     if request.method == 'POST':
         for pergunta in perguntas:
             perfil_escolhido = request.POST.get(f'pergunta_{pergunta.id}')
@@ -113,14 +122,17 @@ def realizar_teste(request, candidato_id):
                     defaults={'perfil_escolhido': perfil_escolhido}
                 )
         calcular_e_salvar_perfil(candidato)
-        ultima_inscricao = Inscricao.objects.filter(candidato=candidato).latest('data_inscricao')
+        
+        # Envia os e-mails AGORA, depois de tudo concluído
+        _enviar_emails_candidatura(request, ultima_inscricao)
+        
         return redirect('confirmacao', vaga_id=ultima_inscricao.vaga.id)
+    
     contexto = {
         'candidato': candidato,
         'perguntas': perguntas,
         'titulo_pagina': 'Teste de Perfil Comportamental'
     }
-    # CORREÇÃO: Restaurado o caminho correto do template
     return render(request, 'teste_personalidade.html', contexto)
 
 def calcular_e_salvar_perfil(candidato):
@@ -152,5 +164,4 @@ def calcular_e_salvar_perfil(candidato):
 
 def confirmacao(request, vaga_id):
     vaga = get_object_or_404(Vaga, id=vaga_id)
-    # CORREÇÃO: Restaurado o caminho correto do template
     return render(request, 'vagas/confirmacao.html', {'vaga': vaga})
