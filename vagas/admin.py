@@ -14,6 +14,7 @@ from datetime import timedelta
 from django.urls import path, reverse
 from django.shortcuts import render, get_object_or_404
 from django import forms
+from django.utils.html import format_html # Importamos para criar o link com segurança
 
 class MyDashboardAdminSite(admin.AdminSite):
     def get_urls(self):
@@ -150,7 +151,7 @@ class VagaAdmin(admin.ModelAdmin):
                     obj.save()
 
 class CandidatoAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'email', 'perfil_comportamental', 'cidade', 'contratado')
+    list_display = ('nome', 'email', 'contato', 'whatsapp_link', 'perfil_comportamental')
     search_fields = ('nome', 'email', 'cidade')
     list_filter = ('contratado', 'perfil_comportamental', 'cidade', 'preferencia_turno')
     fieldsets = (
@@ -179,8 +180,17 @@ class CandidatoAdmin(admin.ModelAdmin):
             }
         return super().change_view(request, object_id, form_url, extra_context=extra_context)
 
+    # --- NOVA FUNÇÃO PARA O LINK DO WHATSAPP ---
+    def whatsapp_link(self, obj):
+        url = obj.get_whatsapp_url()
+        if not url:
+            return "—"
+        return format_html('<a href="{}" target="_blank"><i class="fab fa-whatsapp"></i> Enviar Mensagem</a>', url)
+    whatsapp_link.short_description = "WhatsApp"
+    # -----------------------------------------
+
 class InscricaoAdmin(admin.ModelAdmin):
-    list_display = ('get_nome_candidato', 'get_empresa_nome', 'get_vaga_titulo', 'status', 'data_inscricao')
+    list_display = ('get_nome_candidato', 'get_empresa_nome', 'get_vaga_titulo', 'whatsapp_do_candidato', 'status')
     list_filter = ('vaga__empresa__nome', 'status', 'data_inscricao')
     search_fields = ('candidato__nome', 'candidato__email', 'vaga__titulo')
     list_editable = ('status',)
@@ -224,6 +234,14 @@ class InscricaoAdmin(admin.ModelAdmin):
     get_vaga_titulo.short_description = 'Vaga'
     def get_empresa_nome(self, obj): return obj.vaga.empresa.nome
     get_empresa_nome.short_description = 'Empresa'
+    
+    # --- NOVA FUNÇÃO PARA O LINK DO WHATSAPP ---
+    def whatsapp_do_candidato(self, obj):
+        url = obj.candidato.get_whatsapp_url()
+        if not url:
+            return "—"
+        return format_html('<a href="{}" target="_blank"><i class="fab fa-whatsapp"></i> Contatar</a>', url)
+    whatsapp_do_candidato.short_description = "WhatsApp"
 
 class PerguntaAdmin(admin.ModelAdmin):
     list_display = ('texto', 'ativo')

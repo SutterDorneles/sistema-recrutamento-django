@@ -2,6 +2,7 @@
 
 from django.db import models
 from django.utils import timezone
+import re # Importamos a biblioteca para limpar o número de telefone
 
 class Empresa(models.Model):
     nome = models.CharField(max_length=100, verbose_name="Nome da Empresa")
@@ -73,6 +74,17 @@ class Candidato(models.Model):
     perfil_comportamental = models.CharField(max_length=50, blank=True, null=True, verbose_name="Perfil Comportamental")
     contratado = models.BooleanField(default=False, verbose_name="Já foi contratado?")
     def __str__(self): return self.nome
+    
+   # --- NOVA FUNÇÃO PARA GERAR O LINK DO WHATSAPP ---
+    def get_whatsapp_url(self):
+        if not self.contato:
+            return ""
+        # Limpa o número, removendo tudo o que não for dígito
+        numero_limpo = re.sub(r'\D', '', self.contato)
+        # Adiciona o código do Brasil (55) se não estiver presente
+        if not numero_limpo.startswith('55'):
+            numero_limpo = '55' + numero_limpo
+        return f"https://wa.me/{numero_limpo}"
 
 class Funcionario(models.Model):
     STATUS_CHOICES = [
