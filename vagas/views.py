@@ -41,7 +41,7 @@ def _enviar_emails_candidatura(request, inscricao):
             f"Uma nova candidatura foi recebida de '{candidato.nome}' para a vaga '{vaga.titulo}'.\n\n"
             f"Para ver os detalhes da inscrição, aceda ao link:\n{link_inscricao}"
         )
-        email_do_recrutador = ['sutterdorneles@gmail.com'] # Lembre-se de alterar se necessário
+        email_do_recrutador = ['sutterdorns@gmail.com'] # Lembre-se de alterar se necessário
         send_mail(
             assunto_recrutador,
             mensagem_recrutador,
