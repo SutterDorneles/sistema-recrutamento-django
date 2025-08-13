@@ -14,6 +14,7 @@ from datetime import timedelta
 from django.urls import path, reverse
 from django.shortcuts import render, get_object_or_404
 from django import forms
+from django.utils.html import format_html
 
 class MyDashboardAdminSite(admin.AdminSite):
     # ... (código do dashboard continua o mesmo)
@@ -152,7 +153,7 @@ class VagaAdmin(admin.ModelAdmin):
                     obj.save()
 
 class CandidatoAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'email', 'perfil_comportamental', 'cidade', 'contratado')
+    list_display = ('nome', 'email', 'contato', 'whatsapp_link', 'perfil_comportamental', 'cidade', 'contratado')
     search_fields = ('nome', 'email', 'cidade')
     list_filter = ('contratado', 'perfil_comportamental', 'cidade', 'preferencia_turno')
     fieldsets = (
@@ -164,6 +165,14 @@ class CandidatoAdmin(admin.ModelAdmin):
     )
     readonly_fields = ('perfil_comportamental', 'total_i', 'total_c', 'total_a', 'total_o', 'contratado')
     change_form_template = 'admin/vagas/candidato/change_form.html'
+    
+    def whatsapp_link(self, obj):
+        url = obj.get_whatsapp_url()
+        if not url:
+            return "—"
+        return format_html('<a href="{}" target="_blank"><i class="fab fa-whatsapp"></i> Enviar Mensagem</a>', url)
+    whatsapp_link.short_description = "WhatsApp"
+    
     def change_view(self, request, object_id, form_url='', extra_context=None):
         extra_context = extra_context or {}
         candidato = self.get_object(request, object_id)
@@ -182,7 +191,7 @@ class CandidatoAdmin(admin.ModelAdmin):
         return super().change_view(request, object_id, form_url, extra_context=extra_context)
 
 class InscricaoAdmin(admin.ModelAdmin):
-    list_display = ('get_nome_candidato', 'get_empresa_nome', 'get_vaga_titulo', 'status', 'data_inscricao')
+    list_display = ('get_nome_candidato', 'get_empresa_nome', 'get_vaga_titulo', 'whatsapp_do_candidato', 'status', 'data_inscricao')
     list_filter = ('vaga__empresa__nome', 'status', 'data_inscricao')
     search_fields = ('candidato__nome', 'candidato__email', 'vaga__titulo')
     list_editable = ('status',)
@@ -191,6 +200,14 @@ class InscricaoAdmin(admin.ModelAdmin):
         'marcar_como_aprovado', 'marcar_como_rejeitado',
         'exportar_para_csv'
     ]
+    
+    def whatsapp_do_candidato(self, obj):
+        url = obj.candidato.get_whatsapp_url()
+        if not url:
+            return "—"
+        return format_html('<a href="{}" target="_blank"><i class="fab fa-whatsapp"></i> Contatar</a>', url)
+    whatsapp_do_candidato.short_description = "WhatsApp"    
+    
     def marcar_como_em_analise(self, request, queryset):
         queryset.update(status='em_analise')
         self.message_user(request, f"{queryset.count()} inscrições foram marcadas como 'Em Análise'.")
