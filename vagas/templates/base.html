@@ -9,13 +9,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     
-    <!-- ADICIONADO O LINK PARA O FAVICON -->
     <link rel="icon" href="{% static 'vagas/images/favicon.png' %}" type="image/png">
     
     <title>{% block title %}Sistema de Recrutamento{% endblock %}</title>
 
     <style>
-        /* ... (o seu CSS continua o mesmo) ... */
+        /* Reset básico e definição da fonte */
         :root {
             --cor-primaria: #005A9C;
             --cor-secundaria: #25D366;
@@ -24,6 +23,7 @@
             --cor-cartao: #ffffff;
             --sombra-suave: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--cor-fundo);
@@ -36,6 +36,8 @@
             min-height: 100vh;
             box-sizing: border-box;
         }
+
+        /* Container principal */
         .container {
             max-width: 800px;
             margin: 0 auto;
@@ -47,10 +49,52 @@
             width: 100%;
             box-sizing: border-box;
         }
+        
+        /* --- ESTILOS DO CABEÇALHO ATUALIZADOS --- */
+        .site-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .site-header img {
+            height: 70px;
+            flex-shrink: 0; /* Impede que a imagem encolha */
+        }
+        .site-header .header-text h1 {
+            margin: 0;
+            color: var(--cor-primaria);
+            font-size: 1.8em;
+        }
+        .site-header .header-text h2 {
+            margin: 0;
+            font-weight: 500;
+            color: #555;
+            font-size: 1.1em;
+        }
+
+        /* --- REGRA DE RESPONSIVIDADE PARA ECRÃS PEQUENOS --- */
+        @media (max-width: 600px) {
+            .site-header {
+                flex-direction: column; /* Empilha o logótipo e o texto */
+                text-align: center;     /* Centraliza o texto */
+            }
+            .site-header .header-text h1 {
+                font-size: 1.5em; /* Ajusta o tamanho da fonte para telemóveis */
+            }
+            .site-header .header-text h2 {
+                font-size: 1em;
+            }
+        }
+        /* --- FIM DA ATUALIZAÇÃO --- */
+
+        /* Títulos */
         h1, h2, h3 {
             color: var(--cor-primaria);
             margin-top: 0;
         }
+
+        /* Links */
         a {
             color: var(--cor-primaria);
             text-decoration: none;
@@ -59,6 +103,8 @@
         a:hover {
             text-decoration: underline;
         }
+
+        /* Botões */
         .btn {
             display: inline-block;
             background-color: var(--cor-primaria);
@@ -75,6 +121,8 @@
             background-color: #004170;
             text-decoration: none;
         }
+
+        /* Formulários */
         form p {
             margin-bottom: 15px;
         }
@@ -90,6 +138,8 @@
             border-radius: 8px;
             box-sizing: border-box;
         }
+
+        /* Estilos para o Rodapé */
         footer {
             text-align: center;
             padding: 20px 0;
@@ -97,17 +147,20 @@
             font-size: 0.9em;
             color: #777;
         }
+        
     </style>
 </head>
 <body>
     <div class="container">
-        <header style="display: flex; align-items: center; gap: 20px; margin-bottom: 30px;">
-            <img src="{% static 'vagas/images/logo.jpg' %}" alt="Logo da Empresa" style="height: 70px;">
-            <div>
-                <h1 style="margin: 0; color: var(--cor-primaria);">Plataforma de Gestão de Talentos</h1>
-                <h2 style="margin: 0; font-weight: 500; color: #555; text-align:center;">Conectando pessoas e oportunidades</h2>
+        <!-- HTML do cabeçalho atualizado para usar as novas classes CSS -->
+        <header class="site-header">
+            <img src="{% static 'vagas/images/logo.jpg' %}" alt="Logo da Empresa">
+            <div class="header-text">
+                <h1>Plataforma de Gestão de Talentos</h1>
+                <h2>Conectando pessoas e oportunidades</h2>
             </div>
         </header>
+        
         <!-- O conteúdo específico de cada página será inserido aqui -->
         {% block content %}
         {% endblock %}

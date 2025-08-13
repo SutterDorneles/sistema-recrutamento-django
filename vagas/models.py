@@ -2,26 +2,18 @@
 
 from django.db import models
 from django.utils import timezone
-import re # Importamos a biblioteca para limpar o número de telefone
+from datetime import date
 
 class Empresa(models.Model):
     nome = models.CharField(max_length=100, verbose_name="Nome da Empresa")
     logotipo = models.ImageField(upload_to='logotipos/', null=True, blank=True, verbose_name="Logotipo")
     descricao = models.TextField(blank=True, null=True, verbose_name="Sobre a Empresa")
-    # --- CAMPO ADICIONADO PARA ORDENAÇÃO ---
     ordem = models.PositiveIntegerField(default=0, verbose_name="Ordem de Exibição")
-    # ------------------------------------
-
-    def __str__(self):
-        return self.nome
-
+    def __str__(self): return self.nome
     class Meta:
         verbose_name = "Empresa"
         verbose_name_plural = "Empresas"
-        # --- ORDENAÇÃO PADRÃO ADICIONADA ---
-        # Isto garante que as empresas serão sempre listadas por este campo.
         ordering = ['ordem']
-        # ---------------------------------
 
 class Vaga(models.Model):
     TURNO_CHOICES = [('Diurno', 'Diurno'), ('Noturno', 'Noturno'), ('Qualquer', 'Qualquer Turno')]
@@ -41,8 +33,11 @@ class Vaga(models.Model):
     def __str__(self): return f"{self.titulo} ({self.empresa.nome})"
 
 class Candidato(models.Model):
-    nome = models.CharField(verbose_name="Nome Completo", max_length=100, default="Não informado")
+    nome = models.CharField(verbose_name="Nome Completo", max_length=100)
     sexo = models.CharField(max_length=20, default="Não informado")
+    # --- NOVO CAMPO ADICIONADO ---
+    cpf = models.CharField(max_length=14, null=True, blank=True, unique=True, verbose_name="CPF")
+    # -----------------------------
     cep = models.CharField(max_length=9, blank=True, null=True)
     endereco = models.CharField(verbose_name="Endereço", max_length=255, default="Não informado")
     bairro = models.CharField(max_length=100, default="Não informado")
@@ -60,12 +55,12 @@ class Candidato(models.Model):
     habitos = models.CharField(verbose_name="Hábitos", max_length=200, default="Nenhum")
     preferencia_cargo = models.CharField(verbose_name="Preferência de cargo", max_length=100, default="Não informado")
     preferencia_turno = models.CharField(verbose_name="Preferência de turno", max_length=50, default="Não informado")
-    melhor_trabalho = models.TextField(verbose_name="Qual foi o trabalho que você mais gostou, teve o melhor desempenho e mais se destacou?", blank=True, default="")
+    melhor_trabalho = models.TextField(verbose_name="Qual foi o trabalho que você mais gostou...", blank=True, default="")
     pontos_fortes = models.TextField(verbose_name="No que você se considera bom?", blank=True, default="")
     lazer = models.TextField(verbose_name="O que você mais gosta de fazer nas horas vagas?", blank=True, default="")
     objetivo_curto_prazo = models.TextField(verbose_name="Quais são seus objetivos pessoais a curto prazo", blank=True, default="")
     objetivo_longo_prazo = models.TextField(verbose_name="Quais são seus objetivos pessoais a longo prazo", blank=True, default="")
-    email = models.EmailField(default="nao.informado@exemplo.com")
+    email = models.EmailField(unique=True) # E-mail deve ser único
     curriculo = models.FileField(verbose_name="Currículo", upload_to='curriculos/', blank=True, null=True)
     total_i = models.IntegerField(default=0, verbose_name="Total 'I' (Águia)")
     total_c = models.IntegerField(default=0, verbose_name="Total 'C' (Gato)")
@@ -74,17 +69,6 @@ class Candidato(models.Model):
     perfil_comportamental = models.CharField(max_length=50, blank=True, null=True, verbose_name="Perfil Comportamental")
     contratado = models.BooleanField(default=False, verbose_name="Já foi contratado?")
     def __str__(self): return self.nome
-    
-   # --- NOVA FUNÇÃO PARA GERAR O LINK DO WHATSAPP ---
-    def get_whatsapp_url(self):
-        if not self.contato:
-            return ""
-        # Limpa o número, removendo tudo o que não for dígito
-        numero_limpo = re.sub(r'\D', '', self.contato)
-        # Adiciona o código do Brasil (55) se não estiver presente
-        if not numero_limpo.startswith('55'):
-            numero_limpo = '55' + numero_limpo
-        return f"https://wa.me/{numero_limpo}"
 
 class Funcionario(models.Model):
     STATUS_CHOICES = [
@@ -95,12 +79,30 @@ class Funcionario(models.Model):
     perfil_candidato = models.OneToOneField(Candidato, on_delete=models.CASCADE, primary_key=True)
     empresa = models.ForeignKey(Empresa, on_delete=models.SET_NULL, null=True, blank=True)
     cargo = models.CharField(max_length=100)
-    data_admissao = models.DateField(auto_now_add=True)
+    # --- NOVO CAMPO ADICIONADO ---
+    remuneracao = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    # -----------------------------
+    data_admissao = models.DateField() # Alterado para ser obrigatório
     data_demissao = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ativo')
     observacoes = models.TextField(blank=True, null=True, verbose_name="Observações (ex: motivo da demissão)")
     def __str__(self): return self.perfil_candidato.nome
-    class Meta: verbose_name = "Funcionário"; verbose_name_plural = "Funcionários"
+
+    # --- NOVA FUNÇÃO PARA CALCULAR O TEMPO DE SERVIÇO ---
+    def tempo_de_servico(self):
+        if self.data_admissao:
+            hoje = date.today()
+            delta = hoje - self.data_admissao
+            anos = delta.days // 365
+            meses = (delta.days % 365) // 30
+            if anos > 0:
+                return f"{anos} ano(s) e {meses} mes(es)"
+            return f"{meses} mes(es)"
+        return "N/A"
+    tempo_de_servico.short_description = "Tempo de Serviço"
+    # ----------------------------------------------------
+
+    class Meta: verbose_name = "Funcionário"; verbose_name_plural = "Funcionários (Todos)"
 
 class FuncionarioAtivo(Funcionario):
     class Meta:
@@ -117,7 +119,7 @@ class FuncionarioDemitido(Funcionario):
 class FuncionarioComObservacao(Funcionario):
     class Meta:
         proxy = True
-        verbose_name = "Funcionário Com Observação"
+        verbose_name = "Funcionário com Observação"
         verbose_name_plural = "Funcionários com Observação"
 
 class Inscricao(models.Model):

@@ -14,16 +14,15 @@ from datetime import timedelta
 from django.urls import path, reverse
 from django.shortcuts import render, get_object_or_404
 from django import forms
-from django.utils.html import format_html # Importamos para criar o link com segurança
 
 class MyDashboardAdminSite(admin.AdminSite):
+    # ... (código do dashboard continua o mesmo)
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
             path('', self.admin_view(self.dashboard_view), name='index'),
             path('pipeline/', self.admin_view(self.pipeline_view), name='pipeline'),
             path('pipeline/change_status/<int:inscricao_id>/<str:new_status>/', self.admin_view(self.change_status_view), name='pipeline_change_status'),
-            # NOVA ROTA PARA CONTRATAR PELO PIPELINE
             path('pipeline/contratar/<int:inscricao_id>/', self.admin_view(self.pipeline_contratar_view), name='pipeline_contratar'),
         ]
         return custom_urls + urls
@@ -97,7 +96,9 @@ class MyDashboardAdminSite(admin.AdminSite):
                     perfil_candidato=inscricao.candidato,
                     empresa=inscricao.vaga.empresa,
                     cargo=inscricao.vaga.tipo_cargo or 'Não especificado',
-                    status='ativo'
+                    status='ativo',
+                    remuneracao=0, # Valor padrão, pode ser editado depois
+                    data_admissao=timezone.now().date()
                 )
                 inscricao.candidato.contratado = True
                 inscricao.candidato.save()
@@ -151,11 +152,11 @@ class VagaAdmin(admin.ModelAdmin):
                     obj.save()
 
 class CandidatoAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'email', 'contato', 'whatsapp_link', 'perfil_comportamental')
+    list_display = ('nome', 'email', 'perfil_comportamental', 'cidade', 'contratado')
     search_fields = ('nome', 'email', 'cidade')
     list_filter = ('contratado', 'perfil_comportamental', 'cidade', 'preferencia_turno')
     fieldsets = (
-        ('Informações Principais', {'fields': ('nome', 'email', 'contato', 'idade', 'sexo', 'estado_civil', 'contratado')}),
+        ('Informações Principais', {'fields': ('nome', 'email', 'cpf', 'contato', 'idade', 'sexo', 'estado_civil', 'contratado')}),
         ('Endereço e Moradia', {'fields': ('cep', 'endereco', 'bairro', 'cidade', 'tempo_residencia', 'moradia', 'meio_locomocao')}),
         ('Informações Familiares', {'classes': ('collapse',), 'fields': ('tem_filhos', 'qtd_filhos', 'idade_filhos', 'mora_com_filhos')}),
         ('Perfil Profissional e Pessoal', {'fields': ('preferencia_cargo', 'preferencia_turno', 'melhor_trabalho', 'pontos_fortes', 'objetivo_curto_prazo', 'objetivo_longo_prazo', 'lazer', 'habitos', 'curriculo')}),
@@ -180,17 +181,8 @@ class CandidatoAdmin(admin.ModelAdmin):
             }
         return super().change_view(request, object_id, form_url, extra_context=extra_context)
 
-    # --- NOVA FUNÇÃO PARA O LINK DO WHATSAPP ---
-    def whatsapp_link(self, obj):
-        url = obj.get_whatsapp_url()
-        if not url:
-            return "—"
-        return format_html('<a href="{}" target="_blank"><i class="fab fa-whatsapp"></i> Enviar Mensagem</a>', url)
-    whatsapp_link.short_description = "WhatsApp"
-    # -----------------------------------------
-
 class InscricaoAdmin(admin.ModelAdmin):
-    list_display = ('get_nome_candidato', 'get_empresa_nome', 'get_vaga_titulo', 'whatsapp_do_candidato', 'status')
+    list_display = ('get_nome_candidato', 'get_empresa_nome', 'get_vaga_titulo', 'status', 'data_inscricao')
     list_filter = ('vaga__empresa__nome', 'status', 'data_inscricao')
     search_fields = ('candidato__nome', 'candidato__email', 'vaga__titulo')
     list_editable = ('status',)
@@ -234,14 +226,6 @@ class InscricaoAdmin(admin.ModelAdmin):
     get_vaga_titulo.short_description = 'Vaga'
     def get_empresa_nome(self, obj): return obj.vaga.empresa.nome
     get_empresa_nome.short_description = 'Empresa'
-    
-    # --- NOVA FUNÇÃO PARA O LINK DO WHATSAPP ---
-    def whatsapp_do_candidato(self, obj):
-        url = obj.candidato.get_whatsapp_url()
-        if not url:
-            return "—"
-        return format_html('<a href="{}" target="_blank"><i class="fab fa-whatsapp"></i> Contatar</a>', url)
-    whatsapp_do_candidato.short_description = "WhatsApp"
 
 class PerguntaAdmin(admin.ModelAdmin):
     list_display = ('texto', 'ativo')
@@ -257,22 +241,88 @@ class RespostaCandidatoAdmin(admin.ModelAdmin):
     get_texto_pergunta.short_description = 'Texto da Pergunta'
 
 class EmpresaAdmin(admin.ModelAdmin):
-    # --- ALTERAÇÃO AQUI ---
-    list_display = ('nome', 'ordem') # Adicionamos a coluna 'ordem'
-    list_editable = ('ordem',)      # Tornamos a coluna 'ordem' editável na lista
-    # ----------------------
+    list_display = ('nome', 'ordem')
+    list_editable = ('ordem',)
     search_fields = ('nome',)
 
+# --- FORMULÁRIO PERSONALIZADO PARA ADICIONAR FUNCIONÁRIOS MANUALMENTE ---
+class FuncionarioAdminForm(forms.ModelForm):
+    nome = forms.CharField(label="Nome Completo", max_length=100, required=True)
+    email = forms.EmailField(label="Email", required=True)
+    cpf = forms.CharField(label="CPF", max_length=14, required=False)
+
+    class Meta:
+        model = Funcionario
+        fields = ['nome', 'email', 'cpf', 'empresa', 'cargo', 'remuneracao', 'data_admissao', 'status', 'observacoes']
+        # --- ALTERAÇÃO AQUI ---
+        # Força o uso do widget de calendário para a data de admissão
+        widgets = {
+            'data_admissao': admin.widgets.AdminDateWidget(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Se estamos a editar um funcionário existente, não mostramos os campos do candidato
+        if self.instance.pk:
+            del self.fields['nome']
+            del self.fields['email']
+            del self.fields['cpf']
+
+# --- GESTÃO DE FUNCIONÁRIOS ATUALIZADA ---
 class FuncionarioAdmin(admin.ModelAdmin):
-    list_display = ('perfil_candidato', 'empresa', 'cargo', 'status', 'data_admissao', 'data_demissao')
+    list_display = ('perfil_candidato', 'empresa', 'cargo', 'status', 'data_admissao', 'tempo_de_servico')
     list_filter = ('status', 'empresa', 'cargo')
     search_fields = ('perfil_candidato__nome', 'perfil_candidato__email', 'cargo')
     list_editable = ('status',)
-    readonly_fields = ('perfil_candidato', 'empresa', 'cargo', 'data_admissao')
+    
+    # Usa o formulário personalizado apenas ao adicionar um novo funcionário
+    def get_form(self, request, obj=None, **kwargs):
+        if obj is None:
+            return FuncionarioAdminForm
+        return super().get_form(request, obj, **kwargs)
 
+    # Define fieldsets diferentes para adicionar e editar
+    def get_fieldsets(self, request, obj=None):
+        if obj is None: # Formulário de Adicionar
+            return (
+                ('Dados do Novo Funcionário', {'fields': ('nome', 'email', 'cpf')}),
+                ('Detalhes do Contrato', {'fields': ('empresa', 'cargo', 'remuneracao', 'data_admissao', 'status', 'observacoes')}),
+            )
+        else: # Formulário de Editar
+            return (
+                ('Informações do Funcionário', {'fields': ('perfil_candidato', 'empresa', 'cargo', 'remuneracao', 'status', 'observacoes')}),
+                ('Datas Importantes', {'fields': ('data_admissao', 'data_demissao', 'tempo_de_servico')}),
+            )
+
+    # Define campos de apenas leitura apenas ao editar
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            return ('perfil_candidato', 'empresa', 'data_admissao', 'tempo_de_servico')
+        return ()
+
+    # Lógica personalizada para guardar
     def save_model(self, request, obj, form, change):
-        if 'status' in form.changed_data and obj.status == 'demitido' and not obj.data_demissao:
+        if not change: # Se for um novo funcionário
+            candidato, created = Candidato.objects.get_or_create(
+                email=form.cleaned_data['email'],
+                defaults={
+                    'nome': form.cleaned_data['nome'],
+                    'cpf': form.cleaned_data.get('cpf'),
+                    'contratado': True
+                }
+            )
+            if not created:
+                candidato.nome = form.cleaned_data['nome']
+                candidato.contratado = True
+                candidato.save()
+            
+            obj.perfil_candidato = candidato
+            if not obj.status:
+                obj.status = 'ativo'
+
+        if change and 'status' in form.changed_data and obj.status == 'demitido' and not obj.data_demissao:
             obj.data_demissao = timezone.now().date()
+        
         super().save_model(request, obj, form, change)
 
 class FuncionarioAtivoAdmin(FuncionarioAdmin):
@@ -280,6 +330,7 @@ class FuncionarioAtivoAdmin(FuncionarioAdmin):
         return super().get_queryset(request).filter(status='ativo')
 
 class FuncionarioDemitidoAdmin(FuncionarioAdmin):
+    list_display = ('perfil_candidato', 'empresa', 'cargo', 'status', 'data_demissao', 'tempo_de_servico')
     def get_queryset(self, request):
         return super().get_queryset(request).filter(status='demitido')
 
