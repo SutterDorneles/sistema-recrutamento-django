@@ -153,7 +153,7 @@ class VagaAdmin(admin.ModelAdmin):
                     obj.save()
 
 class CandidatoAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'email', 'contato', 'whatsapp_link', 'perfil_comportamental', 'cidade', 'contratado')
+    list_display = ('nome', 'email', 'contato', 'whatsapp_link', 'perfil_comportamental', 'ultima_empresa_inscrita', 'ultima_vaga_inscrita', 'contratado')
     search_fields = ('nome', 'email', 'cidade')
     list_filter = ('contratado', 'perfil_comportamental', 'cidade', 'preferencia_turno')
     fieldsets = (
@@ -165,6 +165,21 @@ class CandidatoAdmin(admin.ModelAdmin):
     )
     readonly_fields = ('perfil_comportamental', 'total_i', 'total_c', 'total_a', 'total_o', 'contratado')
     change_form_template = 'admin/vagas/candidato/change_form.html'
+ 
+    def ultima_empresa_inscrita(self, obj):
+        ultima_inscricao = obj.inscricao_set.order_by('-data_inscricao').first()
+        if ultima_inscricao:
+            return ultima_inscricao.vaga.empresa.nome
+        return "Nenhuma inscrição"
+    ultima_empresa_inscrita.short_description = "Última Empresa"
+
+    def ultima_vaga_inscrita(self, obj):
+        ultima_inscricao = obj.inscricao_set.order_by('-data_inscricao').first()
+        if ultima_inscricao:
+            return ultima_inscricao.vaga.titulo
+        return "Nenhuma inscrição"
+    ultima_vaga_inscrita.short_description = "Última Vaga"   
+    
     
     def whatsapp_link(self, obj):
         url = obj.get_whatsapp_url()
