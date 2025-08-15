@@ -123,6 +123,13 @@ class InscricaoInline(admin.TabularInline):
     formfield_overrides = {
         models.TextField: {'widget': admin.widgets.AdminTextareaWidget(attrs={'rows': 3, 'cols': 40})},
     }
+    
+    # --- ALTERAÇÃO AQUI ---
+    # Oculta as inscrições de candidatos já contratados
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(candidato__contratado=False)
+    # ----------------------    
 
 class VagaAdminForm(forms.ModelForm):
     replicar_para_empresas = forms.ModelMultipleChoiceField(
@@ -212,9 +219,16 @@ class InscricaoAdmin(admin.ModelAdmin):
     list_editable = ('status',)
     actions = [
         'marcar_como_em_analise', 'marcar_como_entrevista', 
-        'marcar_como_aprovado', 'marcar_como_rejeitado',
-        'exportar_para_csv'
+        'marcar_como_aprovado', 'marcar_como_rejeitado', 
+        'contratar_candidato', 'exportar_para_csv'
     ]
+    
+    # --- ALTERAÇÃO AQUI ---
+    # Oculta as inscrições de candidatos já contratados
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(candidato__contratado=False)
+    # ----------------------    
     
     def whatsapp_do_candidato(self, obj):
         url = obj.candidato.get_whatsapp_url()
@@ -222,6 +236,43 @@ class InscricaoAdmin(admin.ModelAdmin):
             return "—"
         return format_html('<a href="{}" target="_blank"><i class="fab fa-whatsapp"></i> Contatar</a>', url)
     whatsapp_do_candidato.short_description = "WhatsApp"    
+    
+    # --- NOVA AÇÃO PARA CONTRATAR ---
+    def contratar_candidato(self, request, queryset):
+        contratados = 0
+        ja_contratados = 0
+        nao_aprovados = 0
+
+        for inscricao in queryset:
+            if inscricao.status == 'aprovado':
+                if not inscricao.candidato.contratado:
+                    # Cria o funcionário
+                    Funcionario.objects.create(
+                        perfil_candidato=inscricao.candidato,
+                        empresa=inscricao.vaga.empresa,
+                        cargo=inscricao.vaga.tipo_cargo or 'Não especificado',
+                        status='ativo',
+                        remuneracao=0, # Valor padrão, pode ser editado depois
+                        data_admissao=timezone.now().date()
+                    )
+                    # Marca o candidato como contratado
+                    inscricao.candidato.contratado = True
+                    inscricao.candidato.save()
+                    contratados += 1
+                else:
+                    ja_contratados += 1
+            else:
+                nao_aprovados += 1
+        
+        if contratados > 0:
+            self.message_user(request, f"{contratados} candidato(s) foram contratados e movidos para a lista de funcionários.", messages.SUCCESS)
+        if ja_contratados > 0:
+            self.message_user(request, f"{ja_contratados} candidato(s) já constavam como contratados.", messages.WARNING)
+        if nao_aprovados > 0:
+            self.message_user(request, f"{nao_aprovados} candidato(s) não puderam ser contratados pois o seu status não é 'Aprovado'.", messages.ERROR)
+            
+    contratar_candidato.short_description = "Contratar candidato(s) selecionado(s)"
+    # --- FIM DA NOVA AÇÃO ---    
     
     def marcar_como_em_analise(self, request, queryset):
         queryset.update(status='em_analise')
