@@ -123,12 +123,83 @@ if not DEBUG:
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+# --- CONFIGURAÇÕES DO DJANGO JAZZMIN (VERSÃO ESTÁVEL) ---
 JAZZMIN_SETTINGS = {
-    "site_title": "Painel de Recrutamento",
-    "site_header": "Recrutamento",
-    "welcome_sign": "Bem-vindo ao Painel de Recrutamento",
+    "site_title": "Painel RH Ori",
+    "site_header": "RH Orientado",
+    "welcome_sign": "Bem-vindo ao Painel de Gestão de RH",
     "theme": "flatly",
-    "UI_enhancements": {
-        "border_radius": "0.5rem",
+    
+    # Adiciona o painel de "Ações Recentes" ao dashboard
+    "show_recent_actions": True,
+    
+    # 1. Define a ordem exata dos modelos dentro da aplicação 'vagas'
+    "order_with_respect_to": [
+        "vagas.empresa", 
+        "vagas.vaga", 
+        "vagas.inscricao", 
+        "vagas.candidato", 
+        "vagas.funcionarioativo", 
+        "vagas.funcionariodemitido", 
+        "vagas.funcionariocomobservacao", 
+        "vagas.funcionario",
+        "vagas.pergunta",
+        "vagas.respostacandidato"
+    ],
+    
+    # 2. Renomeia a aplicação e define um ícone para o grupo
+    "apps": {
+        "vagas": {
+            "name": "Gestão de Pessoas",
+            "icon": "fas fa-users-cog",
+        }
     },
+
+    # 3. Define os ícones para cada modelo individualmente
+    "icons": {
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+        "vagas.empresa": "far fa-building",
+        "vagas.vaga": "fas fa-briefcase",
+        "vagas.inscricao": "fas fa-file-signature",
+        "vagas.candidato": "fas fa-user-plus",
+        "vagas.funcionarioativo": "fas fa-user-check",
+        "vagas.funcionariodemitido": "fas fa-user-times",
+        "vagas.funcionariocomobservacao": "fas fa-user-tag",
+        "vagas.funcionario": "fas fa-users",
+        "vagas.pergunta": "fas fa-question-circle",
+        "vagas.respostacandidato": "fas fa-poll-h",
+    },
+}
+
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": "navbar-dark",
+    "accent": "accent-primary",
+    "navbar": "navbar-white navbar-light",
+    "no_navbar_border": False,
+    "navbar_fixed": False,
+    "layout_boxed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": True,
+    "sidebar": "sidebar-dark-primary",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": False,
+    "sidebar_nav_compact_style": False,
+    "sidebar_nav_legacy_style": False, # <-- Desativado para evitar conflitos
+    "sidebar_nav_flat_style": True,
+    "theme": "flatly",
+    "dark_mode_theme": None,
+    "button_classes": {
+        "primary": "btn-primary",
+        "secondary": "btn-secondary",
+        "info": "btn-info",
+        "warning": "btn-warning",
+        "danger": "btn-danger",
+        "success": "btn-success"
+    }
 }

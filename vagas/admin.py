@@ -15,6 +15,7 @@ from django.urls import path, reverse
 from django.shortcuts import render, get_object_or_404
 from django import forms
 from django.utils.html import format_html
+from django.contrib.admin.models import LogEntry
 
 class MyDashboardAdminSite(admin.AdminSite):
     # ... (código do dashboard continua o mesmo)
@@ -42,6 +43,12 @@ class MyDashboardAdminSite(admin.AdminSite):
         total_gato = Candidato.objects.filter(perfil_comportamental__icontains='Gato').count()
         total_tubarao = Candidato.objects.filter(perfil_comportamental__icontains='Tubarão').count()
         total_lobo = Candidato.objects.filter(perfil_comportamental__icontains='Lobo').count()
+        
+                # --- LÓGICA PARA AS AÇÕES RECENTES ---
+        recent_actions = LogEntry.objects.select_related('content_type', 'user').all()[:10]
+        # ------------------------------------
+
+        
         base_inscricao_url = reverse('admin:vagas_inscricao_changelist')
         context.update({
             'total_vagas': total_vagas,
@@ -59,6 +66,7 @@ class MyDashboardAdminSite(admin.AdminSite):
             'total_gato': total_gato,
             'total_tubarao': total_tubarao,
             'total_lobo': total_lobo,
+            'recent_actions': recent_actions, #Adicionamos os dados ao contexto
         })
         return render(request, 'admin/index.html', context)
 

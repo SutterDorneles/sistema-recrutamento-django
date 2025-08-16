@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-{% load static %}
+{% load static jazzmin %}
 
 {% block extrastyle %}
     {{ block.super }}
@@ -55,6 +55,18 @@
         .card-body.p-0 .table th, .card-body.p-0 .table td {
             padding: .75rem;
         }
+        /* Estilos para a lista de ações recentes */
+        .log-entry {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .log-entry li {
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .log-entry li:last-child {
+            border-bottom: none;
+        }
     </style>
 {% endblock %}
 
@@ -63,9 +75,8 @@
 {% endblock %}
 
 {% block content %}
-<!-- CORREÇÃO: Agrupados todos os cartões de estatísticas numa única linha para melhor espaçamento -->
 <div class="row">
-    <!-- Cartão Pipeline -->
+    <!-- Cartões de Estatísticas -->
     <div class="col-lg-3 col-md-6 col-12">
         <a href="{% url 'admin:pipeline' %}" style="text-decoration: none;">
             <div class="small-box bg-purple">
@@ -74,7 +85,6 @@
             </div>
         </a>
     </div>
-    <!-- Cartão Vagas Ativas -->
     <div class="col-lg-3 col-md-6 col-12">
         <a href="{{ url_vagas }}" style="text-decoration: none;">
             <div class="small-box bg-info">
@@ -83,14 +93,12 @@
             </div>
         </a>
     </div>
-    <!-- Cartão Novas Inscrições -->
     <div class="col-lg-3 col-md-6 col-12">
         <div class="small-box bg-success">
             <div class="inner"><h3>{{ novas_inscricoes }}</h3><p>Novas Inscrições (7 dias)</p></div>
             <div class="icon"><i class="fas fa-user-plus"></i></div>
         </div>
     </div>
-    <!-- Cartão Em Análise -->
     <div class="col-lg-3 col-md-6 col-12">
         <a href="{{ url_em_analise }}" style="text-decoration: none;">
             <div class="small-box bg-warning">
@@ -99,7 +107,6 @@
             </div>
         </a>
     </div>
-    <!-- Cartão Em Entrevista -->
     <div class="col-lg-3 col-md-6 col-12">
         <a href="{{ url_entrevista }}" style="text-decoration: none;">
             <div class="small-box bg-orange">
@@ -108,7 +115,6 @@
             </div>
         </a>
     </div>
-    <!-- Cartão Aprovados -->
     <div class="col-lg-3 col-md-6 col-12">
         <a href="{{ url_aprovados }}" style="text-decoration: none;">
             <div class="small-box bg-teal">
@@ -117,7 +123,6 @@
             </div>
         </a>
     </div>
-    <!-- Cartão Rejeitados -->
     <div class="col-lg-3 col-md-6 col-12">
         <a href="{{ url_rejeitados }}" style="text-decoration: none;">
             <div class="small-box bg-dark">
@@ -130,7 +135,7 @@
 
 <div class="row">
     <!-- Gráfico de Perfis -->
-    <div class="col-lg-7">
+    <div class="col-lg-8">
         <div class="card card-primary card-outline">
             <div class="card-header"><h3 class="card-title"><i class="far fa-chart-bar"></i> Distribuição de Perfis Comportamentais</h3></div>
             <div class="card-body">
@@ -146,29 +151,27 @@
         </div>
     </div>
 
-    <!-- Lista de Acesso Rápido -->
-    <div class="col-lg-5">
+    <!-- Ações Recentes -->
+    <div class="col-lg-4">
         <div class="card card-primary card-outline">
-            <div class="card-header"><h3 class="card-title"><i class="fas fa-tasks"></i> Acesso Rápido</h3></div>
-            <div class="card-body p-0">
-                {% for app in app_list %}
-                    <table class="table table-striped">
-                        {% for model in app.models %}
-                            <tr>
-                                {% if model.admin_url %}
-                                    <td><a href="{{ model.admin_url }}">{{ model.name }}</a></td>
-                                {% else %}
-                                    <td>{{ model.name }}</td>
-                                {% endif %}
-                                {% if model.add_url %}
-                                    <td class="text-right"><a href="{{ model.add_url }}" class="addlink">Adicionar</a></td>
-                                {% else %}
-                                    <td>&nbsp;</td>
-                                {% endif %}
-                            </tr>
-                        {% endfor %}
-                    </table>
-                {% endfor %}
+            <div class="card-header"><h3 class="card-title"><i class="fas fa-history"></i> Ações Recentes</h3></div>
+            <div class="card-body">
+                <ul class="log-entry">
+                    {% for log in recent_actions %}
+                        <li>
+                            {% if log.is_addition %}
+                                <i class="fas fa-plus-circle text-success"></i>
+                            {% elif log.is_change %}
+                                <i class="fas fa-edit text-warning"></i>
+                            {% elif log.is_deletion %}
+                                <i class="fas fa-minus-circle text-danger"></i>
+                            {% endif %}
+                            {{ log.user.username }}: {{ log.get_change_message }}
+                        </li>
+                    {% empty %}
+                        <li>Nenhuma ação recente.</li>
+                    {% endfor %}
+                </ul>
             </div>
         </div>
     </div>
