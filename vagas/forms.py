@@ -1,5 +1,5 @@
 from django import forms
-from .models import Candidato
+from .models import Candidato, Vaga
 
 class CandidaturaForm(forms.ModelForm):
     class Meta:
@@ -43,3 +43,25 @@ class CandidaturaForm(forms.ModelForm):
             'objetivo_curto_prazo': forms.Textarea(attrs={'rows': 2}),
             'objetivo_longo_prazo': forms.Textarea(attrs={'rows': 2}),
         }
+
+class ContratacaoForm(forms.Form):
+    """
+    Formulário para finalizar a contratação de um candidato,
+    permitindo ajustar o cargo e definir a remuneração e data de admissão.
+    """
+    # Usamos um ModelChoiceField para que o cargo seja uma lista de opções
+    cargo = forms.ChoiceField(
+        choices=Vaga.CARGO_CHOICES,
+        label="Cargo de Contratação",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    remuneracao = forms.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        label="Remuneração (Salário)",
+        widget=forms.NumberInput(attrs={'class': 'form-control'})
+    )
+    data_admissao = forms.DateField(
+        label="Data de Admissão",
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
