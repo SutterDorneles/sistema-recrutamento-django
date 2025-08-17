@@ -98,19 +98,15 @@
                             <small>Inscrito em: {{ inscricao.data_inscricao|date:"d/m/Y" }}</small>
 
                             <div class="candidate-card-actions">
-                                <!-- Botão do WhatsApp Adicionado -->
-                                {% if inscricao.candidato.contato %}
-                                    <a href="{{ inscricao.candidato.get_whatsapp_url }}" target="_blank" class="btn-pipeline btn-whatsapp"><i class="fab fa-whatsapp"></i></a>
-                                {% endif %}
-
                                 {% if inscricao.status == 'recebida' %}
                                     <a href="{% url 'admin:pipeline_change_status' inscricao.id 'em_analise' %}" class="btn-pipeline btn-next"><i class="fas fa-arrow-right"></i> Mover p/ Análise</a>
                                 {% elif inscricao.status == 'em_analise' %}
-                                    <a href="{% url 'admin:pipeline_change_status' inscricao.id 'entrevista' %}" class="btn-pipeline btn-next"><i class="fas fa-arrow-right"></i> Agendar Entrevista</a>
+                                    <a href="{% url 'admin:pipeline_agendar_entrevista' inscricao.id %}" class="btn-pipeline btn-next"><i class="fas fa-calendar-alt"></i> Agendar Entrevista</a>
                                 {% elif inscricao.status == 'entrevista' %}
                                     <a href="{% url 'admin:pipeline_change_status' inscricao.id 'aprovado' %}" class="btn-pipeline btn-approve"><i class="fas fa-check"></i> Aprovar</a>
                                 {% elif inscricao.status == 'aprovado' %}
-                                    <a href="{% url 'admin:pipeline_contratar' inscricao.id %}" class="btn-pipeline btn-hire"><i class="fas fa-user-tie"></i> Contratar</a>
+                                    <!-- CORREÇÃO: O link agora aponta para a nova página de contratação -->
+                                    <a href="{% url 'admin:contratar_candidato' inscricao.id %}" class="btn-pipeline btn-hire"><i class="fas fa-user-tie"></i> Contratar</a>
                                 {% endif %}
 
                                 {% if inscricao.status != 'rejeitado' and inscricao.status != 'aprovado' %}

@@ -138,16 +138,18 @@ def realizar_teste(request, candidato_id):
                 )
         calcular_e_salvar_perfil(candidato)
         
-        # Envia os e-mails AGORA, depois de tudo concluído
+        # --- ALTERAÇÃO AQUI ---
+        # Atualiza o status para "Recebida", tornando a candidatura oficial
+        ultima_inscricao.status = 'recebida'
+        ultima_inscricao.save()
+        
+        # Envia os e-mails apenas depois de a candidatura ser oficializada
         _enviar_emails_candidatura(request, ultima_inscricao)
+        # ----------------------
         
         return redirect('confirmacao', vaga_id=ultima_inscricao.vaga.id)
     
-    contexto = {
-        'candidato': candidato,
-        'perguntas': perguntas,
-        'titulo_pagina': 'Teste de Perfil Comportamental'
-    }
+    contexto = {'candidato': candidato, 'perguntas': perguntas, 'titulo_pagina': 'Teste de Perfil Comportamental'}
     return render(request, 'teste_personalidade.html', contexto)
 
 def calcular_e_salvar_perfil(candidato):

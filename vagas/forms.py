@@ -65,3 +65,11 @@ class ContratacaoForm(forms.Form):
         label="Data de Admissão",
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
     )
+
+# --- NOVO FORMULÁRIO PARA AGENDAR ENTREVISTAS ---
+class AgendamentoEntrevistaForm(forms.Form):
+    data_entrevista = forms.DateTimeField(
+        label="Data e Hora da Entrevista",
+        widget=forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'})
+    )
+# ---------------------------------------------

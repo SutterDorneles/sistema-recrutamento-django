@@ -7,7 +7,7 @@ from .models import (
     Vaga, Candidato, Inscricao, Pergunta, RespostaCandidato, Empresa, Funcionario,
     FuncionarioAtivo, FuncionarioDemitido, FuncionarioComObservacao
 )
-from .forms import ContratacaoForm # Importamos o novo formulário
+from .forms import ContratacaoForm, AgendamentoEntrevistaForm # Importamos o novo formulário
 import csv
 from django.http import HttpResponse, HttpResponseRedirect
 from django.utils import timezone
@@ -27,6 +27,8 @@ class MyDashboardAdminSite(admin.AdminSite):
             path('pipeline/change_status/<int:inscricao_id>/<str:new_status>/', self.admin_view(self.change_status_view), name='pipeline_change_status'),
             # ROTA PARA A NOVA PÁGINA DE CONTRATAÇÃO
             path('inscricao/<int:inscricao_id>/contratar/', self.admin_view(self.contratar_view), name='contratar_candidato'),
+            # ROTA CORRIGIDA E ADICIONADA DE AGENDAR ENTREVISTA
+            path('pipeline/agendar_entrevista/<int:inscricao_id>/', self.admin_view(self.agendar_entrevista_view), name='pipeline_agendar_entrevista'),
         ]
         return custom_urls + urls
 
@@ -63,6 +65,27 @@ class MyDashboardAdminSite(admin.AdminSite):
             'total_lobo': total_lobo,
         })
         return render(request, 'admin/index.html', context)
+    
+    # --- NOVA VIEW PARA A PÁGINA DE AGENDAMENTO ---
+    def agendar_entrevista_view(self, request, inscricao_id):
+        inscricao = get_object_or_404(Inscricao, id=inscricao_id)
+        if request.method == 'POST':
+            form = AgendamentoEntrevistaForm(request.POST)
+            if form.is_valid():
+                inscricao.data_entrevista = form.cleaned_data['data_entrevista']
+                inscricao.status = 'entrevista'
+                inscricao.save()
+                messages.success(request, f"Entrevista com {inscricao.candidato.nome} agendada com sucesso!")
+                redirect_url = reverse('admin:pipeline') + f'?vaga_id={inscricao.vaga.id}'
+                return HttpResponseRedirect(redirect_url)
+        else:
+            form = AgendamentoEntrevistaForm()
+        context = self.each_context(request)
+        context['form'] = form
+        context['inscricao'] = inscricao
+        context['title'] = f"Agendar Entrevista: {inscricao.candidato.nome}"
+        return render(request, 'admin/agendar_entrevista_form.html', context)
+
 
     def pipeline_view(self, request):
         context = self.each_context(request)
@@ -147,12 +170,46 @@ class VagaAdmin(admin.ModelAdmin):
     inlines = [InscricaoInline]
 
 class CandidatoAdmin(admin.ModelAdmin):
-    # ... (código do CandidatoAdmin continua o mesmo)
-    list_display = ('nome', 'email', 'ultima_empresa_inscrita', 'ultima_vaga_inscrita', 'whatsapp_link', 'contratado')
+    list_display = ('nome', 'email', 'perfil_comportamental', 'ultima_empresa_inscrita', 'ultima_vaga_inscrita', 'whatsapp_link', 'contratado')
     search_fields = ('nome', 'email', 'cidade')
     list_filter = ('contratado', 'perfil_comportamental', 'cidade', 'preferencia_turno')
+    
+    # Oculta candidatos que só têm inscrições incompletas
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        complete_candidates_pk = Inscricao.objects.exclude(status='incompleto').values_list('candidato__pk', flat=True)
+        return qs.filter(Q(pk__in=complete_candidates_pk) | Q(contratado=True)).distinct()    
+    
+    # --- CORREÇÃO: Reintroduzida a organização em abas (fieldsets) ---
+    fieldsets = (
+        ('Informações Principais', {'fields': ('nome', 'email', 'cpf', 'contato', 'idade', 'sexo', 'estado_civil', 'contratado')}),
+        ('Endereço e Moradia', {'fields': ('cep', 'endereco', 'bairro', 'cidade', 'tempo_residencia', 'moradia', 'meio_locomocao')}),
+        ('Perfil Profissional e Pessoal', {'classes': ('collapse',), 'fields': ('preferencia_cargo', 'preferencia_turno', 'melhor_trabalho', 'pontos_fortes', 'objetivo_curto_prazo', 'objetivo_longo_prazo', 'lazer', 'habitos', 'curriculo')}),
+        # Esta secção é agora preenchida pelo nosso template
+        ('Resultado do Teste de Perfil', {'fields': ()}),
+    )    
+        
     readonly_fields = ('perfil_comportamental', 'total_i', 'total_c', 'total_a', 'total_o', 'contratado')
+    
+    # Esta linha é a chave para trazer o gráfico de volta
     change_form_template = 'admin/vagas/candidato/change_form.html'
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        candidato = self.get_object(request, object_id)
+        if candidato:
+            total_respostas = candidato.total_i + candidato.total_c + candidato.total_a + candidato.total_o
+            def calcular_percentual(valor, total):
+                if total == 0: return 0
+                return round((valor / total) * 100)
+            extra_context['chart_data'] = {
+                'aguia': calcular_percentual(candidato.total_i, total_respostas),
+                'gato': calcular_percentual(candidato.total_c, total_respostas),
+                'tubarao': calcular_percentual(candidato.total_a, total_respostas),
+                'lobo': calcular_percentual(candidato.total_o, total_respostas),
+                'perfil_principal': candidato.perfil_comportamental,
+            }
+        return super().change_view(request, object_id, form_url, extra_context=extra_context)
     
     def ultima_empresa_inscrita(self, obj):
         ultima_inscricao = obj.inscricao_set.order_by('-data_inscricao').first()
@@ -178,9 +235,11 @@ class InscricaoAdmin(admin.ModelAdmin):
     search_fields = ('candidato__nome', 'candidato__email', 'vaga__titulo')
     list_editable = ('status',)
     
+    # CORREÇÃO: As duas regras de filtro foram combinadas numa única função
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        return qs.filter(candidato__contratado=False)
+        # Exclui tanto as inscrições incompletas como as de candidatos já contratados
+        return qs.exclude(status='incompleto').filter(candidato__contratado=False)
 
     def whatsapp_do_candidato(self, obj):
         url = obj.candidato.get_whatsapp_url()

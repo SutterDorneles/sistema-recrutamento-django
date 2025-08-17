@@ -137,14 +137,20 @@ class FuncionarioComObservacao(Funcionario):
 
 class Inscricao(models.Model):
     STATUS_CHOICES = [
+        ('incompleto', 'Incompleto'),        
         ('recebida', 'Recebida'), ('em_analise', 'Em Análise'), ('entrevista', 'Entrevista Agendada'),
         ('aprovado', 'Aprovado'), ('rejeitado', 'Rejeitado'),
     ]
     vaga = models.ForeignKey(Vaga, on_delete=models.CASCADE)
     candidato = models.ForeignKey(Candidato, on_delete=models.CASCADE)
     data_inscricao = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='recebida', verbose_name="Status da Candidatura")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='incompleto', verbose_name="Status da Candidatura")
     notas_internas = models.TextField(blank=True, null=True, verbose_name="Notas Internas do Recrutador")
+    
+    # --- NOVOS CAMPOS PARA A AGENDA ---
+    data_entrevista = models.DateTimeField(null=True, blank=True, verbose_name="Data e Hora da Entrevista")
+    # ----------------------------------    
+    
     def __str__(self): return f'{self.candidato.nome} - {self.vaga.titulo}'
 
 class Pergunta(models.Model):
