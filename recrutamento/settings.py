@@ -130,6 +130,7 @@ JAZZMIN_SETTINGS = {
     "welcome_sign": "Bem-vindo ao Painel de Gestão de RH",
     "theme": "flatly",
     
+    
     # Adiciona o painel de "Ações Recentes" ao dashboard
     "show_recent_actions": True,
     

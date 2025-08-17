@@ -1,0 +1,77 @@
+{% extends "admin/change_list.html" %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <style>
+        /* Cores para cada status */
+        .row-status-recebida { background-color: rgba(255, 255, 255, 1) !important; }
+        .row-status-em_analise { background-color: #fff3cd !important; }
+        .row-status-entrevista { background-color: #d1ecf1 !important; }
+        .row-status-aprovado { background-color: #d4edda !important; }
+        .row-status-rejeitado { background-color: #f8d7da !important; }
+    </style>
+{% endblock %}
+
+{% block result_list %}
+    {{ block.super }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusSelects = document.querySelectorAll('select[name$="-status"]');
+            const ajaxUrl = "{% url 'admin:ajax_change_inscricao_status' %}";
+            
+            // CORREÇÃO: Usando um seletor mais direto e global para encontrar o token.
+            const csrfTokenInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+
+            if (!csrfTokenInput) {
+                console.error('CSRF token não encontrado. A funcionalidade de auto-save não será ativada.');
+                return; // Para a execução do script se o token não for encontrado.
+            }
+            const csrfToken = csrfTokenInput.value;
+
+            function updateRowColor(selectElement) {
+                const status = selectElement.value;
+                const row = selectElement.closest('tr');
+                // Remove todas as classes de status antigas
+                row.className = row.className.replace(/\brow-status-\w+/g, '');
+                // Adiciona a nova classe de status
+                row.classList.add(`row-status-${status}`);
+            }
+
+            // Aplica a cor inicial a todas as linhas
+            statusSelects.forEach(updateRowColor);
+
+            statusSelects.forEach(select => {
+                select.addEventListener('change', function(event) {
+                    const newStatus = event.target.value;
+                    const row = event.target.closest('tr');
+                    // O ID da inscrição está no primeiro campo da linha (a checkbox)
+                    const idInput = row.querySelector('input.action-select');
+                    if (!idInput) return;
+                    const inscricaoId = idInput.value;
+
+                    const formData = new FormData();
+                    formData.append('inscricao_id', inscricaoId);
+                    formData.append('new_status', newStatus);
+                    formData.append('csrfmiddlewaretoken', csrfToken);
+
+                    fetch(ajaxUrl, {
+                        method: 'POST',
+                        body: formData,
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            console.log('Status atualizado com sucesso!');
+                            updateRowColor(event.target);
+                        } else {
+                            console.error('Erro ao atualizar status:', data.message);
+                            // Reverte para o valor antigo em caso de erro
+                            // (Implementação mais avançada)
+                        }
+                    })
+                    .catch(error => console.error('Erro de rede:', error));
+                });
+            });
+        });
+    </script>
+{% endblock %}

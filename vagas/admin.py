@@ -9,7 +9,7 @@ from .models import (
 )
 from .forms import ContratacaoForm, AgendamentoEntrevistaForm # Importamos o novo formulário
 import csv
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.utils import timezone
 from datetime import timedelta
 from django.urls import path, reverse
@@ -17,6 +17,7 @@ from django.shortcuts import render, get_object_or_404
 from django import forms
 from django.utils.html import format_html
 from django.db.models import Q
+from django.contrib.admin.models import LogEntry
 
 class MyDashboardAdminSite(admin.AdminSite):
     def get_urls(self):
@@ -29,6 +30,8 @@ class MyDashboardAdminSite(admin.AdminSite):
             path('inscricao/<int:inscricao_id>/contratar/', self.admin_view(self.contratar_view), name='contratar_candidato'),
             # ROTA CORRIGIDA E ADICIONADA DE AGENDAR ENTREVISTA
             path('pipeline/agendar_entrevista/<int:inscricao_id>/', self.admin_view(self.agendar_entrevista_view), name='pipeline_agendar_entrevista'),
+            # NOVA ROTA PARA O AUTO-SAVE
+            path('inscricao/ajax_change_status/', self.admin_view(self.ajax_change_status_view), name='ajax_change_inscricao_status'),            
         ]
         return custom_urls + urls
 
@@ -46,6 +49,9 @@ class MyDashboardAdminSite(admin.AdminSite):
         total_gato = Candidato.objects.filter(perfil_comportamental__icontains='Gato').count()
         total_tubarao = Candidato.objects.filter(perfil_comportamental__icontains='Tubarão').count()
         total_lobo = Candidato.objects.filter(perfil_comportamental__icontains='Lobo').count()
+        
+        #recent_actions = LogEntry.objects.select_related('content_type', 'user').all()[:10]     
+        
         base_inscricao_url = reverse('admin:vagas_inscricao_changelist')
         context.update({
             'total_vagas': total_vagas,
@@ -65,6 +71,24 @@ class MyDashboardAdminSite(admin.AdminSite):
             'total_lobo': total_lobo,
         })
         return render(request, 'admin/index.html', context)
+    
+    # --- NOVA VIEW PARA O AUTO-SAVE (AJAX) ---
+    def ajax_change_status_view(self, request):
+        if request.method == 'POST':
+            inscricao_id = request.POST.get('inscricao_id')
+            new_status = request.POST.get('new_status')
+            try:
+                inscricao = Inscricao.objects.get(id=inscricao_id)
+                inscricao.status = new_status
+                inscricao.save()
+                return JsonResponse({'success': True, 'message': 'Status atualizado com sucesso!'})
+            except Inscricao.DoesNotExist:
+                return JsonResponse({'success': False, 'message': 'Inscrição não encontrada.'}, status=404)
+            except Exception as e:
+                return JsonResponse({'success': False, 'message': str(e)}, status=500)
+        return JsonResponse({'success': False, 'message': 'Apenas pedidos POST são permitidos.'}, status=400)
+    # --- FIM DA NOVA VIEW ---    
+    
     
     # --- NOVA VIEW PARA A PÁGINA DE AGENDAMENTO ---
     def agendar_entrevista_view(self, request, inscricao_id):
@@ -234,6 +258,9 @@ class InscricaoAdmin(admin.ModelAdmin):
     list_filter = ('vaga__empresa__nome', 'status', 'data_inscricao')
     search_fields = ('candidato__nome', 'candidato__email', 'vaga__titulo')
     list_editable = ('status',)
+
+    # Diz ao admin para usar o nosso novo "molde" para esta página
+    change_list_template = "admin/vagas/inscricao/change_list.html"
     
     # CORREÇÃO: As duas regras de filtro foram combinadas numa única função
     def get_queryset(self, request):
