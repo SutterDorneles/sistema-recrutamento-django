@@ -205,12 +205,28 @@ class CandidatoAdmin(admin.ModelAdmin):
     search_fields = ('nome', 'email', 'cidade')
     list_filter = ('contratado', 'perfil_comportamental', 'cidade', 'preferencia_turno')
     
-    # Oculta candidatos que só têm inscrições incompletas
+    # --- CORREÇÃO AQUI ---
+    # Reescrevemos a lógica de filtro para ser mais eficiente e não quebrar a ação de apagar
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        complete_candidates_pk = Inscricao.objects.exclude(status='incompleto').values_list('candidato__pk', flat=True)
-        return qs.filter(Q(pk__in=complete_candidates_pk) | Q(contratado=True)).distinct()    
-    
+        
+        # Pega os IDs dos candidatos que têm pelo menos uma inscrição completa
+        complete_candidates_ids = set(
+            Inscricao.objects.exclude(status='incompleto')
+            .values_list('candidato_id', flat=True)
+        )
+
+        # Filtra a lista para mostrar apenas os candidatos relevantes
+        qs = qs.filter(
+            Q(id__in=complete_candidates_ids) | Q(contratado=True)
+        )
+
+        # Aplica a regra de esconder os contratados, a não ser que o utilizador esteja a filtrar por eles
+        if 'contratado__exact' in request.GET:
+            return qs
+        
+        return qs.filter(contratado=False)
+    # ----------------------
     # --- CORREÇÃO: Reintroduzida a organização em abas (fieldsets) ---
     fieldsets = (
         ('Informações Principais', {'fields': ('nome', 'email', 'cpf', 'contato', 'idade', 'sexo', 'estado_civil', 'contratado')}),
@@ -378,13 +394,14 @@ class FuncionarioAdmin(admin.ModelAdmin):
     search_fields = ('perfil_candidato__nome', 'perfil_candidato__email', 'cargo')
     list_editable = ('status',)
     
-    # Usa o formulário personalizado apenas ao adicionar um novo funcionário
+    change_form_template = 'admin/vagas/funcionario/change_form.html'
+
+    # --- LÓGICA RESTAURADA ---
     def get_form(self, request, obj=None, **kwargs):
         if obj is None:
             return FuncionarioAdminForm
         return super().get_form(request, obj, **kwargs)
 
-    # Define fieldsets diferentes para adicionar e editar
     def get_fieldsets(self, request, obj=None):
         if obj is None: # Formulário de Adicionar
             return (
@@ -393,15 +410,73 @@ class FuncionarioAdmin(admin.ModelAdmin):
             )
         else: # Formulário de Editar
             return (
-                ('Informações do Funcionário', {'fields': ('perfil_candidato', 'empresa', 'cargo', 'remuneracao', 'status', 'observacoes')}),
-                ('Datas Importantes', {'fields': ('data_admissao', 'data_demissao', 'tempo_de_servico')}),
+                ('Detalhes do Contrato', {
+                    'fields': ('empresa', 'cargo', 'remuneracao', 'status', 'observacoes', 'data_demissao')
+                }),
+                ('Datas Importantes', {
+                    'fields': ('data_admissao', 'tempo_de_servico')
+                }),
+                ('Dados Pessoais (do Perfil Original)', {
+                    'classes': ('collapse',),
+                    'fields': ('get_nome', 'get_email', 'get_cpf', 'get_contato', 'get_idade', 'get_sexo', 'get_estado_civil', 'get_endereco_completo')
+                }),
+                ('Resultado do Teste de Perfil', { 'fields': () }),
             )
 
-    # Define campos de apenas leitura apenas ao editar
     def get_readonly_fields(self, request, obj=None):
         if obj:
-            return ('perfil_candidato', 'empresa', 'data_admissao', 'tempo_de_servico')
+            return [
+                'get_nome', 'get_email', 'get_cpf', 'get_contato', 'get_idade', 'get_sexo',
+                'get_estado_civil', 'get_endereco_completo',
+                'tempo_de_servico', 'data_admissao'
+            ]
         return ()
+    # --- FIM DA LÓGICA RESTAURADA ---
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        funcionario = self.get_object(request, object_id)
+        if funcionario:
+            candidato = funcionario.perfil_candidato
+            total_respostas = candidato.total_i + candidato.total_c + candidato.total_a + candidato.total_o
+            def calcular_percentual(valor, total):
+                if total == 0: return 0
+                return round((valor / total) * 100)
+            extra_context['chart_data'] = {
+                'aguia': calcular_percentual(candidato.total_i, total_respostas),
+                'gato': calcular_percentual(candidato.total_c, total_respostas),
+                'tubarao': calcular_percentual(candidato.total_a, total_respostas),
+                'lobo': calcular_percentual(candidato.total_o, total_respostas),
+                'perfil_principal': candidato.perfil_comportamental,
+            }
+        return super().change_view(request, object_id, form_url, extra_context=extra_context)
+
+    # Funções para buscar os dados do candidato relacionado
+    def get_nome(self, obj): return obj.perfil_candidato.nome
+    get_nome.short_description = "Nome Completo"
+    
+    def get_email(self, obj): return obj.perfil_candidato.email
+    get_email.short_description = "Email"
+
+    def get_cpf(self, obj): return obj.perfil_candidato.cpf
+    get_cpf.short_description = "CPF"
+
+    def get_contato(self, obj): return obj.perfil_candidato.contato
+    get_contato.short_description = "Contato"
+    
+    def get_idade(self, obj): return obj.perfil_candidato.idade
+    get_idade.short_description = "Idade"
+
+    def get_sexo(self, obj): return obj.perfil_candidato.sexo
+    get_sexo.short_description = "Sexo"
+
+    def get_estado_civil(self, obj): return obj.perfil_candidato.estado_civil
+    get_estado_civil.short_description = "Estado Civil"
+
+    def get_endereco_completo(self, obj):
+        c = obj.perfil_candidato
+        return f"{c.endereco}, {c.bairro} - {c.cidade}"
+    get_endereco_completo.short_description = "Endereço"
 
     # Lógica personalizada para guardar
     def save_model(self, request, obj, form, change):
@@ -420,17 +495,17 @@ class FuncionarioAdmin(admin.ModelAdmin):
                 candidato.save()
             
             obj.perfil_candidato = candidato
-            if not obj.status:
-                obj.status = 'ativo'
+            if not obj.status: obj.status = 'ativo'
 
         if change and 'status' in form.changed_data and obj.status == 'demitido' and not obj.data_demissao:
             obj.data_demissao = timezone.now().date()
         
         super().save_model(request, obj, form, change)
 
+
 class FuncionarioAtivoAdmin(FuncionarioAdmin):
     def get_queryset(self, request):
-        return super().get_queryset(request).filter(status='ativo')
+        return super().get_queryset(request).filter(status='ativo')    
 
 class FuncionarioDemitidoAdmin(FuncionarioAdmin):
     list_display = ('perfil_candidato', 'empresa', 'cargo', 'status', 'data_demissao', 'tempo_de_servico')

@@ -1,0 +1,93 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block after_field_sets %}
+    {{ block.super }}
+
+    {% if chart_data %}
+    <!-- O nosso bloco de gráfico é renderizado aqui, inicialmente escondido -->
+    <div id="custom-chart-block" style="display: none;">
+        <fieldset class="module aligned">
+            <h2>Análise do Perfil Comportamental</h2>
+            <div class="form-row">
+                <div style="width: 100%; max-width: 800px; margin: 0 auto; padding-top: 15px;">
+                    <h4>Perfil Predominante: <strong>{{ chart_data.perfil_principal|default:"Não calculado" }}</strong></h4>
+                    
+                    <div style="margin-top: 15px; padding: 10px; background-color: #f7f7f9; border-radius: 4px;">
+                        <p><strong>Percentuais detalhados:</strong></p>
+                        <ul style="list-style-type: none; padding-left: 0;">
+                            <li>- Águia (Idealizador): <strong>{{ chart_data.aguia }}%</strong></li>
+                            <li>- Gato (Comunicador): <strong>{{ chart_data.gato }}%</strong></li>
+                            <li>- Tubarão (Executor): <strong>{{ chart_data.tubarao }}%</strong></li>
+                            <li>- Lobo (Analista): <strong>{{ chart_data.lobo }}%</strong></li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-top: 20px;">
+                        <canvas id="radarChart" width="800" height="450"
+                                data-aguia="{{ chart_data.aguia|default:0 }}"
+                                data-gato="{{ chart_data.gato|default:0 }}"
+                                data-tubarao="{{ chart_data.tubarao|default:0 }}"
+                                data-lobo="{{ chart_data.lobo|default:0 }}">
+                        </canvas>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+    </div>
+    {% endif %}
+{% endblock %}
+
+{% block admin_change_form_document_ready %}
+    {{ block.super }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Script para mover o gráfico para a aba correta
+            const customChartBlock = document.getElementById('custom-chart-block');
+            let targetPanel = null;
+            const tabLinks = document.querySelectorAll('.nav-tabs .nav-link');
+
+            tabLinks.forEach(link => {
+                if (link.textContent.trim() === 'Resultado do Teste de Perfil') {
+                    const targetId = link.getAttribute('href');
+                    if (targetId) {
+                        targetPanel = document.querySelector(targetId);
+                    }
+                }
+            });
+
+            if (customChartBlock && targetPanel) {
+                targetPanel.innerHTML = ''; // Limpa a aba
+                targetPanel.appendChild(customChartBlock);
+                customChartBlock.style.display = 'block';
+            }
+
+            // Script para renderizar o gráfico
+            const chartCanvas = document.getElementById('radarChart');
+            if (chartCanvas && typeof Chart !== 'undefined') {
+                const ctx = chartCanvas.getContext('2d');
+                const chartData = [
+                    chartCanvas.dataset.aguia,
+                    chartCanvas.dataset.gato,
+                    chartCanvas.dataset.tubarao,
+                    chartCanvas.dataset.lobo
+                ];
+                new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Águia', 'Gato', 'Tubarão', 'Lobo'],
+                        datasets: [{
+                            label: 'Percentual de Perfil (%)',
+                            data: chartData,
+                            fill: true,
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            borderColor: 'rgb(54, 162, 235)',
+                        }]
+                    },
+                    options: { maintainAspectRatio: false, scales: { r: { suggestedMin: 0, suggestedMax: 100 } } }
+                });
+            }
+        });
+    </script>
+{% endblock %}
