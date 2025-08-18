@@ -1,7 +1,8 @@
 from django import forms
-from .models import Candidato, Vaga
+from .models import Candidato, Vaga, Cargo, Empresa
 
 class CandidaturaForm(forms.ModelForm):
+
     class Meta:
         model = Candidato
         fields = [
@@ -45,13 +46,15 @@ class CandidaturaForm(forms.ModelForm):
         }
 
 class ContratacaoForm(forms.Form):
-    """
-    Formulário para finalizar a contratação de um candidato,
-    permitindo ajustar o cargo e definir a remuneração e data de admissão.
-    """
-    # Usamos um ModelChoiceField para que o cargo seja uma lista de opções
-    cargo = forms.ChoiceField(
-        choices=Vaga.CARGO_CHOICES,
+    # --- NOVO CAMPO ADICIONADO ---
+    empresa = forms.ModelChoiceField(
+        queryset=Empresa.objects.all(),
+        label="Empresa de Contratação",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    # -----------------------------
+    cargo = forms.ModelChoiceField(
+        queryset=Cargo.objects.all(),
         label="Cargo de Contratação",
         widget=forms.Select(attrs={'class': 'form-control'})
     )
@@ -65,6 +68,7 @@ class ContratacaoForm(forms.Form):
         label="Data de Admissão",
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
     )
+    
 
 # --- NOVO FORMULÁRIO PARA AGENDAR ENTREVISTAS ---
 class AgendamentoEntrevistaForm(forms.Form):

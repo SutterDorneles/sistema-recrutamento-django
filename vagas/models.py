@@ -15,6 +15,17 @@ class Empresa(models.Model):
         verbose_name = "Empresa"
         verbose_name_plural = "Empresas"
         ordering = ['ordem']
+        
+# --- NOVA TABELA PARA GERIR OS CARGOS ---
+class Cargo(models.Model):
+    nome = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.nome
+    
+    class Meta:
+        ordering = ['nome']
+# ----------------------------------------        
 
 class Vaga(models.Model):
     TURNO_CHOICES = [('Diurno', 'Diurno'), ('Noturno', 'Noturno'), ('Qualquer', 'Qualquer Turno')]

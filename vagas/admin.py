@@ -5,7 +5,7 @@ from django.db import models
 # Importamos os novos modelos
 from .models import (
     Vaga, Candidato, Inscricao, Pergunta, RespostaCandidato, Empresa, Funcionario,
-    FuncionarioAtivo, FuncionarioDemitido, FuncionarioComObservacao
+    FuncionarioAtivo, FuncionarioDemitido, FuncionarioComObservacao, Cargo
 )
 from .forms import ContratacaoForm, AgendamentoEntrevistaForm # Importamos o novo formulário
 import csv
@@ -148,7 +148,7 @@ class MyDashboardAdminSite(admin.AdminSite):
                 if not inscricao.candidato.contratado:
                     Funcionario.objects.create(
                         perfil_candidato=inscricao.candidato,
-                        empresa=inscricao.vaga.empresa,
+                        empresa=form.cleaned_data['empresa'],
                         cargo=form.cleaned_data['cargo'],
                         status='ativo',
                         remuneracao=form.cleaned_data['remuneracao'],
@@ -162,7 +162,14 @@ class MyDashboardAdminSite(admin.AdminSite):
                     messages.warning(request, f"{inscricao.candidato.nome} já consta como contratado.")
                     return HttpResponseRedirect(reverse('admin:vagas_inscricao_changelist'))
         else:
-            initial_data = {'cargo': inscricao.vaga.tipo_cargo, 'data_admissao': timezone.now().date()}
+            # --- ALTERAÇÃO AQUI ---
+            # Preenche o formulário com os dados da vaga original
+            initial_data = {
+                'empresa': inscricao.vaga.empresa,
+                'cargo': inscricao.vaga.tipo_cargo, 
+                'data_admissao': timezone.now().date()
+            }
+            # ----------------------
             form = ContratacaoForm(initial=initial_data)
 
         context = self.each_context(request)
@@ -252,6 +259,12 @@ class CandidatoAdmin(admin.ModelAdmin):
         if not url: return "—"
         return format_html('<a href="{}" target="_blank"><i class="fab fa-whatsapp"></i> Enviar Mensagem</a>', url)
     whatsapp_link.short_description = "WhatsApp"
+    
+# --- NOVA SECÇÃO PARA GERIR OS CARGOS ---
+class CargoAdmin(admin.ModelAdmin):
+    list_display = ('nome',)
+    search_fields = ('nome',)
+# ----------------------------------------    
 
 class InscricaoAdmin(admin.ModelAdmin):
     list_display = ('get_nome_candidato', 'get_empresa_nome', 'get_vaga_titulo', 'whatsapp_do_candidato', 'status', 'acoes_contratacao', 'data_inscricao')
@@ -438,3 +451,4 @@ admin_site.register(Funcionario, FuncionarioAdmin)
 admin_site.register(FuncionarioAtivo, FuncionarioAtivoAdmin)
 admin_site.register(FuncionarioDemitido, FuncionarioDemitidoAdmin)
 admin_site.register(FuncionarioComObservacao, FuncionarioComObservacaoAdmin)
+admin_site.register(Cargo, CargoAdmin)
