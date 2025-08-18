@@ -414,7 +414,7 @@ class FuncionarioAdmin(admin.ModelAdmin):
                     'fields': ('empresa', 'cargo', 'remuneracao', 'status', 'observacoes', 'data_demissao')
                 }),
                 ('Datas Importantes', {
-                    'fields': ('data_admissao', 'tempo_de_servico')
+                    'fields': ('data_admissao', 'data_demissao', 'tempo_de_servico')
                 }),
                 ('Dados Pessoais (do Perfil Original)', {
                     'classes': ('collapse',),
