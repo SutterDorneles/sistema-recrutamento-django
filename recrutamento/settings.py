@@ -146,6 +146,8 @@ JAZZMIN_SETTINGS = {
         "vagas.funcionario",
         "vagas.pergunta",
         "vagas.respostacandidato"
+        "auth.user",
+        "auth.group",
     ],
     
     # 2. Renomeia a aplicação e define um ícone para o grupo
@@ -154,6 +156,8 @@ JAZZMIN_SETTINGS = {
             "name": "Gestão de Pessoas",
             "icon": "fas fa-users-cog",
         }
+        
+        
     },
 
     # 3. Define os ícones para cada modelo individualmente

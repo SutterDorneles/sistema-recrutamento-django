@@ -18,6 +18,8 @@ from django import forms
 from django.utils.html import format_html
 from django.db.models import Q
 from django.contrib.admin.models import LogEntry
+from django.contrib.auth.models import User, Group
+from django.contrib.auth.admin import UserAdmin, GroupAdmin
 
 class MyDashboardAdminSite(admin.AdminSite):
     def get_urls(self):
@@ -527,3 +529,5 @@ admin_site.register(FuncionarioAtivo, FuncionarioAtivoAdmin)
 admin_site.register(FuncionarioDemitido, FuncionarioDemitidoAdmin)
 admin_site.register(FuncionarioComObservacao, FuncionarioComObservacaoAdmin)
 admin_site.register(Cargo, CargoAdmin)
+admin_site.register(User, UserAdmin)
+admin_site.register(Group, GroupAdmin)
