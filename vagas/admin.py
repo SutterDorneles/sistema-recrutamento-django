@@ -20,6 +20,7 @@ from django.db.models import Q
 from django.contrib.admin.models import LogEntry
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
+from django.core.exceptions import PermissionDenied
 
 class MyDashboardAdminSite(admin.AdminSite):
     def get_urls(self):
@@ -76,6 +77,10 @@ class MyDashboardAdminSite(admin.AdminSite):
     
     # --- NOVA VIEW PARA O AUTO-SAVE (AJAX) ---
     def ajax_change_status_view(self, request):
+        # 🔒 garante que só quem tem permissão pode salvar
+        if not request.user.has_perm("vagas.change_inscricao"):
+            raise PermissionDenied("Você não tem permissão para alterar inscrições.")      
+         
         if request.method == 'POST':
             inscricao_id = request.POST.get('inscricao_id')
             new_status = request.POST.get('new_status')
