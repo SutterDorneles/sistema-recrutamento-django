@@ -369,8 +369,8 @@ class EmpresaAdmin(admin.ModelAdmin):
 # --- FORMULÁRIO PERSONALIZADO PARA ADICIONAR FUNCIONÁRIOS MANUALMENTE ---
 class FuncionarioAdminForm(forms.ModelForm):
     nome = forms.CharField(label="Nome Completo", max_length=100, required=True)
-    email = forms.EmailField(label="Email", required=True)
-    cpf = forms.CharField(label="CPF", max_length=14, required=False)
+    email = forms.EmailField(label="Email", required=False)
+    cpf = forms.CharField(label="CPF", max_length=14, required=True)
 
     class Meta:
         model = Funcionario
