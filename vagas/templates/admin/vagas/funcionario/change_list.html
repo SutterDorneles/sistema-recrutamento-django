@@ -1,0 +1,43 @@
+{% extends "admin/change_list.html" %}
+{% load static %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <style>
+        .row-experiencia { background-color: #fff3cd !important; }
+        .row-ferias-vencidas { background-color: #f8d7da !important; }
+    </style>
+
+    <script src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+    <script>
+        $(document).ready(function(){
+            var headerText = 'Status Cor';
+            var columnIndex = -1;
+
+            $('#result_list thead th').each(function(index) {
+                if ($(this).text().trim().includes(headerText)) {
+                    columnIndex = index;
+                    return false; 
+                }
+            });
+
+            if (columnIndex > -1) {
+                $('#result_list th:nth-child(' + (columnIndex + 1) + ')').hide();
+                $('#result_list td:nth-child(' + (columnIndex + 1) + ')').hide();
+
+                $('#result_list tbody tr').each(function() {
+                    var row = $(this);
+                    // AQUI ESTÁ A CORREÇÃO MÁGICA 👇
+                    var cell = row.find('td, th').eq(columnIndex);
+                    var cssClass = cell.text().trim();
+
+                    if (cssClass) {
+                        row.addClass(cssClass);
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %}
+
+{# Não sobrescreva o bloco result_list. Deixe o Django cuidar disso. #}

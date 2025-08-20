@@ -2,7 +2,7 @@
 
 from django.db import models
 from django.utils import timezone
-from datetime import date
+from datetime import date, timedelta
 import re
 
 class Empresa(models.Model):
@@ -108,10 +108,29 @@ class Funcionario(models.Model):
     # -----------------------------
     data_admissao = models.DateField() # Alterado para ser obrigatório
     data_demissao = models.DateField(null=True, blank=True)
+    data_fim_experiencia_30_30 = models.DateField(null=True, blank=True)
+    data_fim_experiencia_45_45 = models.DateField(null=True, blank=True)
+    data_direito_ferias = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ativo')
     observacoes = models.TextField(blank=True, null=True, verbose_name="Observações (ex: motivo da demissão)")
+    
     def __str__(self): return self.perfil_candidato.nome
 
+    def get_row_class(self):
+        # A versão final, limpa e 100% funcional
+        hoje = timezone.now().date()
+
+        # Condição 1: Em experiência
+        if self.data_fim_experiencia_45_45 and hoje <= self.data_fim_experiencia_45_45:
+            return "row-experiencia"
+
+        # Condição 2: Férias vencidas
+        if self.data_direito_ferias and hoje > self.data_direito_ferias:
+            return "row-ferias-vencidas"
+
+        # Se nenhuma condição for atendida
+        return ""
+    
     # --- NOVA FUNÇÃO PARA CALCULAR O TEMPO DE SERVIÇO ---
     def tempo_de_servico(self):
         if self.data_admissao:
@@ -125,6 +144,13 @@ class Funcionario(models.Model):
         return "N/A"
     tempo_de_servico.short_description = "Tempo de Serviço"
     # ----------------------------------------------------
+    
+    def save(self, *args, **kwargs):
+        if self.data_admissao:
+            self.data_fim_experiencia_30_30 = self.data_admissao + timedelta(days=60)
+            self.data_fim_experiencia_45_45 = self.data_admissao + timedelta(days=90)
+            self.data_direito_ferias = self.data_admissao + timedelta(days=365)
+        super().save(*args, **kwargs)    
 
     class Meta: verbose_name = "Funcionário"; verbose_name_plural = "Funcionários (Todos)"
 

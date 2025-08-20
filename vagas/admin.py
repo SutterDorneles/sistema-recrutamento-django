@@ -393,15 +393,66 @@ class FuncionarioAdminForm(forms.ModelForm):
             del self.fields['nome']
             del self.fields['email']
             del self.fields['cpf']
+            
+# ------------------------
+# Filtros personalizados
+# ------------------------
+class ExperienciaVencidaFilter(admin.SimpleListFilter):
+    title = "Período de Experiência"
+    parameter_name = "experiencia"
+
+    def lookups(self, request, model_admin):
+        return [
+            ("vencida", "Experiência vencida"),
+            ("nao_vencida", "Experiência em andamento"),
+        ]
+
+    def queryset(self, request, queryset):
+        hoje = timezone.now().date()
+        if self.value() == "vencida":
+            return queryset.filter(data_fim_experiencia_45_45__lt=hoje)
+        if self.value() == "nao_vencida":
+            return queryset.filter(data_fim_experiencia_45_45__gte=hoje)
+        return queryset
+
+
+class FeriasFilter(admin.SimpleListFilter):
+    title = "Direito a Férias"
+    parameter_name = "ferias"
+
+    def lookups(self, request, model_admin):
+        return [
+            ("tem_direito", "Já tem direito a férias"),
+            ("nao_tem", "Ainda não tem direito"),
+        ]
+
+    def queryset(self, request, queryset):
+        hoje = timezone.now().date()
+        if self.value() == "tem_direito":
+            return queryset.filter(data_direito_ferias__lte=hoje)
+        if self.value() == "nao_tem":
+            return queryset.filter(data_direito_ferias__gt=hoje)
+        return queryset            
 
 # --- GESTÃO DE FUNCIONÁRIOS ATUALIZADA ---
 class FuncionarioAdmin(admin.ModelAdmin):
-    list_display = ('perfil_candidato', 'empresa', 'cargo', 'status', 'data_admissao', 'tempo_de_servico')
-    list_filter = ('status', 'empresa', 'cargo')
+    change_list_template = "admin/vagas/funcionario/change_list.html"  # 👈 novo
+        
+    list_display = ('perfil_candidato', 'empresa', 'cargo', 'status', 'data_admissao', 'tempo_de_servico', 'data_fim_experiencia_30_30','data_fim_experiencia_45_45','data_direito_ferias', 'cor_da_linha')
+    list_filter = ('status', 'empresa', 'cargo', ExperienciaVencidaFilter, FeriasFilter)
     search_fields = ('perfil_candidato__nome', 'perfil_candidato__email', 'cargo')
     list_editable = ('status',)
+    readonly_fields = [
+        'tempo_de_servico', 'data_fim_experiencia_30_30', 'data_fim_experiencia_45_45', 'data_direito_ferias'
+    ]    
     
     change_form_template = 'admin/vagas/funcionario/change_form.html'
+
+    @admin.display(description='Status Cor')
+    def cor_da_linha(self, obj): # <-- O erro provavelmente estava aqui (faltava o 'obj')
+        # Esta função PRECISA chamar o método do seu modelo E RETORNAR O VALOR
+        return obj.get_row_class()
+
 
     # --- LÓGICA RESTAURADA ---
     def get_form(self, request, obj=None, **kwargs):
@@ -421,7 +472,7 @@ class FuncionarioAdmin(admin.ModelAdmin):
                     'fields': ('empresa', 'cargo', 'remuneracao', 'status', 'observacoes', 'data_demissao')
                 }),
                 ('Datas Importantes', {
-                    'fields': ('data_admissao', 'data_demissao', 'tempo_de_servico')
+                    'fields': ('data_admissao', 'data_demissao', 'tempo_de_servico', 'data_fim_experiencia_30_30','data_fim_experiencia_45_45','data_direito_ferias')
                 }),
                 ('Dados Pessoais (do Perfil Original)', {
                     'classes': ('collapse',),
@@ -439,7 +490,7 @@ class FuncionarioAdmin(admin.ModelAdmin):
             ]
         return ()
     # --- FIM DA LÓGICA RESTAURADA ---
-
+    
     def change_view(self, request, object_id, form_url='', extra_context=None):
         extra_context = extra_context or {}
         funcionario = self.get_object(request, object_id)
