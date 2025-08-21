@@ -5,7 +5,7 @@ from django.db import models
 # Importamos os novos modelos
 from .models import (
     Vaga, Candidato, Inscricao, Pergunta, RespostaCandidato, Empresa, Funcionario,
-    FuncionarioAtivo, FuncionarioDemitido, FuncionarioComObservacao, Cargo
+    FuncionarioAtivo, FuncionarioDemitido, FuncionarioComObservacao, Cargo, HistoricoFuncionario
 )
 from .forms import ContratacaoForm, AgendamentoEntrevistaForm # Importamos o novo formulário
 import csv
@@ -437,7 +437,17 @@ class FeriasFilter(admin.SimpleListFilter):
             return queryset.filter(data_direito_ferias__lte=hoje)
         if self.value() == "nao_tem":
             return queryset.filter(data_direito_ferias__gt=hoje)
-        return queryset            
+        return queryset   
+    
+class HistoricoFuncionarioAdmin(admin.ModelAdmin):
+    list_display = ('funcionario', 'data_ocorrencia', 'tipo', 'criado_por', 'descricao')
+    list_filter = ('tipo', 'funcionario')
+
+    def save_model(self, request, obj, form, change):
+        # Lógica para preencher 'criado_por' ao salvar
+        if not obj.pk: # Se for um novo objeto
+            obj.criado_por = request.user
+        super().save_model(request, obj, form, change)
 
 # --- GESTÃO DE FUNCIONÁRIOS ATUALIZADA ---
 class FuncionarioAdmin(admin.ModelAdmin):
@@ -448,16 +458,47 @@ class FuncionarioAdmin(admin.ModelAdmin):
     search_fields = ('perfil_candidato__nome', 'perfil_candidato__email', 'cargo')
     list_editable = ('status',)
     readonly_fields = [
-        'tempo_de_servico','data_fim_experiencia','data_direito_ferias'
+        'tempo_de_servico','data_fim_experiencia','data_direito_ferias', 'mostrar_historico'
     ]    
-    
+
     change_form_template = 'admin/vagas/funcionario/change_form.html'
 
     @admin.display(description='Status Cor')
     def cor_da_linha(self, obj): # <-- O erro provavelmente estava aqui (faltava o 'obj')
         # Esta função PRECISA chamar o método do seu modelo E RETORNAR O VALOR
         return obj.get_row_class()
+    
+    def mostrar_historico(self, obj):
+        if not obj.pk:
+            return "Salve o funcionário primeiro para adicionar um histórico."
 
+        # Botão para adicionar um novo registro de histórico
+        add_url = reverse('myadmin:vagas_historicofuncionario_add') + f'?funcionario={obj.pk}'
+        
+        html = f'<a href="{add_url}" class="button">Adicionar Novo Histórico</a>'
+        html += '<ul>'
+        
+        # Pega os 5 históricos mais recentes
+        historicos = obj.historico.all().order_by('-data_ocorrencia')[:5]
+        
+        for hist in historicos:
+            criado_por_nome = hist.criado_por.username if hist.criado_por else 'Sistema'
+            html += (
+                f"<li><strong>{hist.data_ocorrencia.strftime('%d/%m/%Y às %H:%M')} - "
+                f"({criado_por_nome}) - {hist.get_tipo_display()}:</strong> "
+                f"{hist.descricao}</li>"
+            )
+            
+        html += '</ul>'
+        
+        if obj.historico.count() > 5:
+            # Link para ver todos os históricos
+            all_url = reverse('myadmin:vagas_historicofuncionario_changelist') + f'?funcionario__id__exact={obj.pk}'
+            html += f'<a href="{all_url}">Ver todos os {obj.historico.count()} registros...</a>'
+            
+        return format_html(html)
+
+    mostrar_historico.short_description = ""    
 
     # --- LÓGICA RESTAURADA ---
     def get_form(self, request, obj=None, **kwargs):
@@ -479,11 +520,18 @@ class FuncionarioAdmin(admin.ModelAdmin):
                 ('Datas Importantes', {
                     'fields': ('data_admissao', 'data_demissao', 'tipo_experiencia', 'tempo_de_servico', 'data_direito_ferias')
                 }),
+                ('Controle de Férias', {
+                    'fields': ('data_direito_ferias', 'data_inicio_gozo_ferias', 'data_fim_gozo_ferias')
+                }),                
                 ('Dados Pessoais (do Perfil Original)', {
                     'classes': ('collapse',),
                     'fields': ('get_nome', 'get_email', 'get_cpf', 'get_contato', 'get_idade', 'get_sexo', 'get_estado_civil', 'get_endereco_completo')
                 }),
                 ('Resultado do Teste de Perfil', { 'fields': () }),
+                # --- ADICIONE ESTA SEÇÃO INTEIRA AQUI NO FINAL ---
+                ('Histórico do Funcionário', {
+                    'fields': ('mostrar_historico',)
+                }),         
             )
 
     def get_readonly_fields(self, request, obj=None):
@@ -491,11 +539,11 @@ class FuncionarioAdmin(admin.ModelAdmin):
             return [
                 'get_nome', 'get_email', 'get_cpf', 'get_contato', 'get_idade', 'get_sexo',
                 'get_estado_civil', 'get_endereco_completo',
-                'tempo_de_servico', 'data_admissao'
+                'tempo_de_servico', 'data_admissao', 'mostrar_historico',
             ]
         return ()
-    # --- FIM DA LÓGICA RESTAURADA ---
     
+    # --- FIM DA LÓGICA RESTAURADA ---
     def change_view(self, request, object_id, form_url='', extra_context=None):
         extra_context = extra_context or {}
         funcionario = self.get_object(request, object_id)
@@ -565,7 +613,6 @@ class FuncionarioAdmin(admin.ModelAdmin):
         
         super().save_model(request, obj, form, change)
 
-
 class FuncionarioAtivoAdmin(FuncionarioAdmin):
     def get_queryset(self, request):
         return super().get_queryset(request).filter(status='ativo')    
@@ -578,7 +625,7 @@ class FuncionarioDemitidoAdmin(FuncionarioAdmin):
 class FuncionarioComObservacaoAdmin(FuncionarioAdmin):
     def get_queryset(self, request):
         return super().get_queryset(request).filter(status='observacao')
-
+    
 admin_site.register(Vaga, VagaAdmin)
 admin_site.register(Candidato, CandidatoAdmin)
 admin_site.register(Inscricao, InscricaoAdmin)
@@ -592,3 +639,4 @@ admin_site.register(FuncionarioComObservacao, FuncionarioComObservacaoAdmin)
 admin_site.register(Cargo, CargoAdmin)
 admin_site.register(User, UserAdmin)
 admin_site.register(Group, GroupAdmin)
+admin_site.register(HistoricoFuncionario, HistoricoFuncionarioAdmin)

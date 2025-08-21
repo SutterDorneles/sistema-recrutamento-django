@@ -133,7 +133,17 @@ class Funcionario(models.Model):
         blank=True,
         editable=False # O usuário não pode editar este campo diretamente
     )    
-    
+    # --- NOVOS CAMPOS PARA CONTROLE DE FÉRIAS ---
+    data_inicio_gozo_ferias = models.DateField(
+        verbose_name="Início do Gozo de Férias",
+        null=True,
+        blank=True
+    )
+    data_fim_gozo_ferias = models.DateField(
+        verbose_name="Fim do Gozo de Férias",
+        null=True,
+        blank=True
+    )
     
     def __str__(self): return self.perfil_candidato.nome
 
@@ -141,12 +151,15 @@ class Funcionario(models.Model):
     def get_row_class(self):
         hoje = timezone.now().date()
 
-        # A condição de experiência agora usa o novo campo único
+        # Condição de experiência continua a mesma
         if self.data_fim_experiencia and hoje <= self.data_fim_experiencia:
             return "row-experiencia"
 
-        # A condição de férias continua a mesma
-        if self.data_direito_ferias and hoje > self.data_direito_ferias:
+        # --- NOVA LÓGICA DE FÉRIAS VENCIDAS ---
+        # Fica vermelho SE:
+        # 1. A data de direito a férias já passou
+        # 2. E AINDA NÃO foi registrada uma data de início do gozo de férias
+        if self.data_direito_ferias and hoje > self.data_direito_ferias and not self.data_inicio_gozo_ferias:
             return "row-ferias-vencidas"
 
         return ""
@@ -236,3 +249,44 @@ class RespostaCandidato(models.Model):
     perfil_escolhido = models.CharField(max_length=1, choices=PERFIL_CHOICES, verbose_name="Perfil Escolhido")
     class Meta: unique_together = ('candidato', 'pergunta')
     def __str__(self): return f"Resposta de {self.candidato.nome} para '{self.pergunta.texto}' foi '{self.perfil_escolhido}'"
+
+# HISTÓRICO DO FUNCIONÁRIO
+class HistoricoFuncionario(models.Model):
+    TIPO_CHOICES = [
+        # Positivas / Desenvolvimento
+        ('ELOGIO',              'Elogio / Reconhecimento'),
+        ('FEEDBACK',            'Feedback / Alinhamento'),
+        ('TREINAMENTO',         'Treinamento / Capacitação'),
+        
+        # Administrativas / Contratuais
+        ('PROMOCAO',            'Promoção / Aumento'),
+        ('ALTERACAO_CONTRATUAL','Alteração Contratual'),      
+        ('ATESTADO',            'Apresentação de Atestado'),
+        
+        # Corretivas / Ocorrências
+        ('ADVERTENCIA',         'Advertência (Verbal ou Escrita)'),
+        ('FALTA_ATRASO',        'Falta / Atraso'),
+        ('OCORRENCIA_OP',       'Ocorrência Operacional'),   
+        ('RECLAMACAO_CLIENTE',  'Reclamação de Cliente'),   
+        
+        # Neutra
+        ('OBSERVACAO',          'Observação Geral'),
+    ]
+
+    funcionario = models.ForeignKey(
+        Funcionario, # Ou FuncionarioAtivo
+        on_delete=models.CASCADE,
+        related_name='historico' # Importante para relacionar
+    )
+    data_ocorrencia = models.DateTimeField(auto_now_add=True)
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='OBSERVACAO')
+    descricao = models.TextField(verbose_name="Descrição do Evento")
+    criado_por = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Registro de Histórico"
+        verbose_name_plural = "Registros de Histórico"
+        ordering = ['-data_ocorrencia'] # Mostra os mais recentes primeiro
+
+    def __str__(self):
+        return f"{self.get_tipo_display()} para {self.funcionario} em {self.data_ocorrencia.strftime('%d/%m/%Y')}"    
