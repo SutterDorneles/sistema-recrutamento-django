@@ -95,6 +95,14 @@ class Candidato(models.Model):
     # --------------------------
 
 class Funcionario(models.Model):
+    # --- DEFINIÇÃO DOS TIPOS DE CONTRATO ---
+    CONTRATO_30_60 = '30_60'
+    CONTRATO_45_90 = '45_90'
+    CONTRATO_CHOICES = [
+        (CONTRATO_30_60, '30 + 30 dias (60 dias)'),
+        (CONTRATO_45_90, '45 + 45 dias (90 dias)'),
+    ]    
+    
     STATUS_CHOICES = [
         ('ativo', 'Ativo'),
         ('demitido', 'Demitido'),
@@ -108,27 +116,39 @@ class Funcionario(models.Model):
     # -----------------------------
     data_admissao = models.DateField() # Alterado para ser obrigatório
     data_demissao = models.DateField(null=True, blank=True)
-    data_fim_experiencia_30_30 = models.DateField(null=True, blank=True)
-    data_fim_experiencia_45_45 = models.DateField(null=True, blank=True)
     data_direito_ferias = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ativo')
     observacoes = models.TextField(blank=True, null=True, verbose_name="Observações (ex: motivo da demissão)")
+    # --- NOVOS CAMPOS ---
+    tipo_experiencia = models.CharField(
+        max_length=5,
+        choices=CONTRATO_CHOICES,
+        verbose_name="Tipo de Contrato de Experiência",
+        blank=True, # Permite que o campo fique em branco
+        null=True
+    )
+    data_fim_experiencia = models.DateField(
+        verbose_name="Data Final da Experiência",
+        null=True,
+        blank=True,
+        editable=False # O usuário não pode editar este campo diretamente
+    )    
+    
     
     def __str__(self): return self.perfil_candidato.nome
 
+    # --- ATUALIZAÇÃO DA LÓGICA DE COR ---
     def get_row_class(self):
-        # A versão final, limpa e 100% funcional
         hoje = timezone.now().date()
 
-        # Condição 1: Em experiência
-        if self.data_fim_experiencia_45_45 and hoje <= self.data_fim_experiencia_45_45:
+        # A condição de experiência agora usa o novo campo único
+        if self.data_fim_experiencia and hoje <= self.data_fim_experiencia:
             return "row-experiencia"
 
-        # Condição 2: Férias vencidas
+        # A condição de férias continua a mesma
         if self.data_direito_ferias and hoje > self.data_direito_ferias:
             return "row-ferias-vencidas"
 
-        # Se nenhuma condição for atendida
         return ""
     
     # --- NOVA FUNÇÃO PARA CALCULAR O TEMPO DE SERVIÇO ---
@@ -146,11 +166,21 @@ class Funcionario(models.Model):
     # ----------------------------------------------------
     
     def save(self, *args, **kwargs):
+        # --- LÓGICA DO CONTRATO DE EXPERIÊNCIA ---
+        if self.tipo_experiencia and self.data_admissao:
+            if self.tipo_experiencia == self.CONTRATO_30_60:
+                self.data_fim_experiencia = self.data_admissao + timedelta(days=59)
+            elif self.tipo_experiencia == self.CONTRATO_45_90:
+                self.data_fim_experiencia = self.data_admissao + timedelta(days=89)
+        else:
+            self.data_fim_experiencia = None
+
+        # --- LÓGICA DO DIREITO A FÉRIAS (da sua função antiga) ---
         if self.data_admissao:
-            self.data_fim_experiencia_30_30 = self.data_admissao + timedelta(days=60)
-            self.data_fim_experiencia_45_45 = self.data_admissao + timedelta(days=90)
-            self.data_direito_ferias = self.data_admissao + timedelta(days=365)
-        super().save(*args, **kwargs)    
+            self.data_direito_ferias = self.data_admissao + timedelta(days=365) # Ou relativedelta(years=1) se preferir
+        
+        # Chama o método save original para salvar tudo no banco
+        super().save(*args, **kwargs)
 
     class Meta: verbose_name = "Funcionário"; verbose_name_plural = "Funcionários (Todos)"
 

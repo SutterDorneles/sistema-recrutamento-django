@@ -404,15 +404,20 @@ class ExperienciaVencidaFilter(admin.SimpleListFilter):
     def lookups(self, request, model_admin):
         return [
             ("vencida", "Experiência vencida"),
-            ("nao_vencida", "Experiência em andamento"),
+            ("em_andamento", "Experiência em andamento"),
         ]
 
     def queryset(self, request, queryset):
         hoje = timezone.now().date()
+        
         if self.value() == "vencida":
-            return queryset.filter(data_fim_experiencia_45_45__lt=hoje)
-        if self.value() == "nao_vencida":
-            return queryset.filter(data_fim_experiencia_45_45__gte=hoje)
+            # MUDANÇA AQUI 👇: usa o novo campo
+            return queryset.filter(data_fim_experiencia__lt=hoje)
+            
+        if self.value() == "em_andamento":
+            # MUDANÇA AQUI 👇: usa o novo campo
+            return queryset.filter(data_fim_experiencia__gte=hoje)
+            
         return queryset
 
 
@@ -438,12 +443,12 @@ class FeriasFilter(admin.SimpleListFilter):
 class FuncionarioAdmin(admin.ModelAdmin):
     change_list_template = "admin/vagas/funcionario/change_list.html"  # 👈 novo
         
-    list_display = ('perfil_candidato', 'empresa', 'cargo', 'status', 'data_admissao', 'tempo_de_servico', 'data_fim_experiencia_30_30','data_fim_experiencia_45_45','data_direito_ferias', 'cor_da_linha')
+    list_display = ('perfil_candidato', 'empresa', 'cargo', 'status', 'data_admissao', 'tempo_de_servico', 'data_fim_experiencia','data_direito_ferias', 'cor_da_linha')
     list_filter = ('status', 'empresa', 'cargo', ExperienciaVencidaFilter, FeriasFilter)
     search_fields = ('perfil_candidato__nome', 'perfil_candidato__email', 'cargo')
     list_editable = ('status',)
     readonly_fields = [
-        'tempo_de_servico', 'data_fim_experiencia_30_30', 'data_fim_experiencia_45_45', 'data_direito_ferias'
+        'tempo_de_servico','data_fim_experiencia','data_direito_ferias'
     ]    
     
     change_form_template = 'admin/vagas/funcionario/change_form.html'
@@ -472,7 +477,7 @@ class FuncionarioAdmin(admin.ModelAdmin):
                     'fields': ('empresa', 'cargo', 'remuneracao', 'status', 'observacoes', 'data_demissao')
                 }),
                 ('Datas Importantes', {
-                    'fields': ('data_admissao', 'data_demissao', 'tempo_de_servico', 'data_fim_experiencia_30_30','data_fim_experiencia_45_45','data_direito_ferias')
+                    'fields': ('data_admissao', 'data_demissao', 'tipo_experiencia', 'tempo_de_servico', 'data_direito_ferias')
                 }),
                 ('Dados Pessoais (do Perfil Original)', {
                     'classes': ('collapse',),
