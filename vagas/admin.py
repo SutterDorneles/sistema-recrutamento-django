@@ -210,7 +210,7 @@ class VagaAdmin(admin.ModelAdmin):
 class CandidatoAdmin(admin.ModelAdmin):
     list_display = ('nome', 'email', 'perfil_comportamental', 'ultima_empresa_inscrita', 'ultima_vaga_inscrita', 'whatsapp_link', 'contratado')
     search_fields = ('nome', 'email', 'cidade')
-    list_filter = ('contratado', 'perfil_comportamental', 'cidade', 'preferencia_turno')
+    list_filter = ('inscricao__vaga','contratado', 'perfil_comportamental', 'cidade', 'preferencia_turno')
     
     # --- CORREÇÃO AQUI ---
     # Reescrevemos a lógica de filtro para ser mais eficiente e não quebrar a ação de apagar
