@@ -291,7 +291,7 @@ class CargoAdmin(admin.ModelAdmin):
 
 class InscricaoAdmin(admin.ModelAdmin):
     list_display = ('get_nome_candidato', 'get_empresa_nome', 'get_vaga_titulo', 'whatsapp_do_candidato', 'status', 'acoes_contratacao', 'data_inscricao')
-    list_filter = ('vaga__empresa__nome', 'status', 'data_inscricao')
+    list_filter = ('vaga__tipo_cargo','vaga__empresa__nome', 'status', 'data_inscricao')
     search_fields = ('candidato__nome', 'candidato__email', 'vaga__titulo')
     list_editable = ('status',)
 
