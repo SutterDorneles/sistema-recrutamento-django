@@ -4,6 +4,7 @@ from django.db import models
 from django.utils import timezone
 from datetime import date, timedelta
 import re
+from django.contrib.auth.models import User
 
 class Empresa(models.Model):
     nome = models.CharField(max_length=100, verbose_name="Nome da Empresa")
@@ -290,3 +291,14 @@ class HistoricoFuncionario(models.Model):
 
     def __str__(self):
         return f"{self.get_tipo_display()} para {self.funcionario} em {self.data_ocorrencia.strftime('%d/%m/%Y')}"    
+
+class PerfilGerente(models.Model):
+    usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil_gerente')
+    empresa = models.ForeignKey(Empresa, on_delete=models.PROTECT, verbose_name="Loja que Gerencia")
+
+    class Meta:
+        verbose_name = "Perfil de Gerente"
+        verbose_name_plural = "Perfis de Gerente"
+
+    def __str__(self):
+        return f"Gerente {self.usuario.username} da loja {self.empresa.nome}"

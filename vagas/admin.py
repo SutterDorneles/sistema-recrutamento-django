@@ -5,7 +5,7 @@ from django.db import models
 # Importamos os novos modelos
 from .models import (
     Vaga, Candidato, Inscricao, Pergunta, RespostaCandidato, Empresa, Funcionario,
-    FuncionarioAtivo, FuncionarioDemitido, FuncionarioComObservacao, Cargo, HistoricoFuncionario
+    FuncionarioAtivo, FuncionarioDemitido, FuncionarioComObservacao, Cargo, HistoricoFuncionario, PerfilGerente
 )
 from .forms import ContratacaoForm, AgendamentoEntrevistaForm # Importamos o novo formulário
 import csv
@@ -19,7 +19,7 @@ from django.utils.html import format_html
 from django.db.models import Q
 from django.contrib.admin.models import LogEntry
 from django.contrib.auth.models import User, Group
-from django.contrib.auth.admin import UserAdmin, GroupAdmin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin, GroupAdmin
 from django.core.exceptions import PermissionDenied
 
 class MyDashboardAdminSite(admin.AdminSite):
@@ -212,7 +212,27 @@ class CandidatoAdmin(admin.ModelAdmin):
     search_fields = ('nome', 'email', 'cidade')
     list_filter = ('inscricao__vaga','contratado', 'perfil_comportamental', 'cidade', 'preferencia_turno')
     
-    # --- CORREÇÃO AQUI ---
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+
+        if request.user.is_superuser:
+            return qs
+
+        if request.user.groups.filter(name='Gerentes').exists():
+            try:
+                empresa_gerente = request.user.perfil_gerente.empresa
+                # Filtra candidatos que tenham uma inscrição com status 'aprovado'
+                # para uma vaga que seja da empresa do gerente.
+                return qs.filter(
+                    inscricao__status='aprovado',
+                    inscricao__vaga__empresa=empresa_gerente
+                ).distinct() # .distinct() para não mostrar o mesmo candidato duas vezes
+            except PerfilGerente.DoesNotExist:
+                return qs.none()
+        
+        return qs.none()
+    
+    
     # Reescrevemos a lógica de filtro para ser mais eficiente e não quebrar a ação de apagar
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -462,6 +482,26 @@ class FuncionarioAdmin(admin.ModelAdmin):
     ]    
 
     change_form_template = 'admin/vagas/funcionario/change_form.html'
+    
+    def get_queryset(self, request):
+        # Pega a lista de todos os funcionários
+        qs = super().get_queryset(request)
+
+        # Se o usuário for um superusuário, ele vê tudo
+        if request.user.is_superuser:
+            return qs
+
+        # Se o usuário pertencer ao grupo "Gerentes"
+        if request.user.groups.filter(name='Gerentes').exists():
+            try:
+                # Filtra os funcionários para mostrar apenas os da sua loja
+                return qs.filter(empresa=request.user.perfil_gerente.empresa)
+            except PerfilGerente.DoesNotExist:
+                # Se o gerente não tiver perfil, não vê ninguém
+                return qs.none()
+        
+        # Se não for superuser nem gerente, não vê ninguém
+        return qs.none()    
 
     @admin.display(description='Status Cor')
     def cor_da_linha(self, obj): # <-- O erro provavelmente estava aqui (faltava o 'obj')
@@ -625,6 +665,18 @@ class FuncionarioDemitidoAdmin(FuncionarioAdmin):
 class FuncionarioComObservacaoAdmin(FuncionarioAdmin):
     def get_queryset(self, request):
         return super().get_queryset(request).filter(status='observacao')
+    
+# --- CÓDIGO PARA ADICIONAR O PERFIL DE GERENTE AO ADMIN DE USUÁRIO ---
+
+# 1. Crie o Inline para o perfil
+class PerfilGerenteInline(admin.StackedInline):
+    model = PerfilGerente
+    can_delete = False
+    verbose_name_plural = 'Perfil de Gerente (Vincular a uma Loja)'
+
+# 2. Crie sua própria classe UserAdmin que usa o inline
+class UserAdmin(BaseUserAdmin):
+    inlines = (PerfilGerenteInline,)    
     
 admin_site.register(Vaga, VagaAdmin)
 admin_site.register(Candidato, CandidatoAdmin)
