@@ -213,11 +213,13 @@ class CandidatoAdmin(admin.ModelAdmin):
     list_filter = ('inscricao__vaga','contratado', 'perfil_comportamental', 'cidade', 'preferencia_turno')
     
     def get_queryset(self, request):
-        # Pega a queryset base
         qs = super().get_queryset(request)
 
-        # --- Lógica para Superusuários (continua a mesma) ---
-        if request.user.is_superuser:
+        # --- NOVA LÓGICA DE ACESSO TOTAL ---
+        grupos_com_acesso_total = ['RH', 'Recrutamento_RH']
+
+        if request.user.is_superuser or request.user.groups.filter(name__in=grupos_com_acesso_total).exists():
+            # A sua lógica original para superusuários agora se aplica a todos com acesso total
             complete_candidates_ids = set(
                 Inscricao.objects.exclude(status='incompleto')
                 .values_list('candidato_id', flat=True)
@@ -229,21 +231,18 @@ class CandidatoAdmin(admin.ModelAdmin):
                 return qs
             return qs.filter(contratado=False)
 
-        # --- Lógica para Gerentes (COM A CORREÇÃO) ---
+        # --- Lógica para Gerentes (continua a mesma) ---
         if request.user.groups.filter(name='Gerentes').exists():
             try:
                 empresa_gerente = request.user.perfil_gerente.empresa
-                # Filtra candidatos APROVADOS para a loja do gerente
-                # E QUE AINDA NÃO FORAM CONTRATADOS.
                 return qs.filter(
                     inscricao__status='aprovado',
                     inscricao__vaga__empresa=empresa_gerente,
-                    contratado=False  # <-- A CORREÇÃO ESSENCIAL
+                    contratado=False
                 ).distinct()
             except PerfilGerente.DoesNotExist:
                 return qs.none()
         
-        # --- Para todos os outros, não mostra nada ---
         return qs.none()
     # ----------------------
     # --- CORREÇÃO: Reintroduzida a organização em abas (fieldsets) ---
@@ -310,32 +309,28 @@ class InscricaoAdmin(admin.ModelAdmin):
     # Diz ao admin para usar o nosso novo "molde" para esta página
     change_list_template = "admin/vagas/inscricao/change_list.html"
     
-    # --- MÉTODO ATUALIZADO COM A LÓGICA DE PERMISSÃO ---
     def get_queryset(self, request):
-        # Pega a queryset base
         qs = super().get_queryset(request)
 
-        # Superusuários veem todas as inscrições (exceto as irrelevantes)
-        if request.user.is_superuser:
+        # --- NOVA LÓGICA DE ACESSO TOTAL ---
+        grupos_com_acesso_total = ['RH', 'Recrutamento_RH']
+
+        if request.user.is_superuser or request.user.groups.filter(name__in=grupos_com_acesso_total).exists():
+            # Superusuários e RH veem todas as inscrições relevantes
             return qs.exclude(status='incompleto').filter(candidato__contratado=False)
 
-        # Gerentes veem uma lista filtrada
+        # --- Lógica para Gerentes (continua a mesma) ---
         if request.user.groups.filter(name='Gerentes').exists():
             try:
-                # Pega a empresa do gerente logado
                 empresa_gerente = request.user.perfil_gerente.empresa
-                
-                # Filtra para mostrar apenas inscrições APROVADAS para vagas da SUA empresa
                 return qs.filter(
                     vaga__empresa=empresa_gerente,
                     status='aprovado'
                 )
             except PerfilGerente.DoesNotExist:
-                # Se o gerente não tiver um perfil vinculado a uma loja, não vê nada
                 return qs.none()
         
-        # Outros usuários (que não são superusuários nem gerentes) não veem nada
-        return qs.none()    
+        return qs.none()
     
     # CORREÇÃO: As duas regras de filtro foram combinadas numa única função
     def get_queryset(self, request):
@@ -503,25 +498,26 @@ class FuncionarioAdmin(admin.ModelAdmin):
     change_form_template = 'admin/vagas/funcionario/change_form.html'
     
     def get_queryset(self, request):
-        # Pega a lista de todos os funcionários
         qs = super().get_queryset(request)
 
-        # Se o usuário for um superusuário, ele vê tudo
-        if request.user.is_superuser:
-            return qs
+        # --- NOVA LÓGICA DE ACESSO TOTAL ---
+        # Define quais grupos têm visão completa
+        grupos_com_acesso_total = ['RH', 'Recrutamento_RH'] 
 
-        # Se o usuário pertencer ao grupo "Gerentes"
+        # Se o usuário for superuser OU pertencer a um dos grupos de acesso total
+        if request.user.is_superuser or request.user.groups.filter(name__in=grupos_com_acesso_total).exists():
+            return qs # Vê tudo
+
+        # --- Lógica para Gerentes (continua a mesma) ---
         if request.user.groups.filter(name='Gerentes').exists():
             try:
-                # Filtra os funcionários para mostrar apenas os da sua loja
                 return qs.filter(empresa=request.user.perfil_gerente.empresa)
             except PerfilGerente.DoesNotExist:
-                # Se o gerente não tiver perfil, não vê ninguém
                 return qs.none()
         
-        # Se não for superuser nem gerente, não vê ninguém
-        return qs.none()    
-
+        # Outros usuários não veem nada
+        return qs.none()
+    
     @admin.display(description='Status Cor')
     def cor_da_linha(self, obj): # <-- O erro provavelmente estava aqui (faltava o 'obj')
         # Esta função PRECISA chamar o método do seu modelo E RETORNAR O VALOR
