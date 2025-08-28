@@ -213,46 +213,38 @@ class CandidatoAdmin(admin.ModelAdmin):
     list_filter = ('inscricao__vaga','contratado', 'perfil_comportamental', 'cidade', 'preferencia_turno')
     
     def get_queryset(self, request):
+        # Pega a queryset base
         qs = super().get_queryset(request)
 
+        # --- Lógica para Superusuários (continua a mesma) ---
         if request.user.is_superuser:
-            return qs
+            complete_candidates_ids = set(
+                Inscricao.objects.exclude(status='incompleto')
+                .values_list('candidato_id', flat=True)
+            )
+            qs = qs.filter(
+                Q(id__in=complete_candidates_ids) | Q(contratado=True)
+            )
+            if 'contratado__exact' in request.GET:
+                return qs
+            return qs.filter(contratado=False)
 
+        # --- Lógica para Gerentes (COM A CORREÇÃO) ---
         if request.user.groups.filter(name='Gerentes').exists():
             try:
                 empresa_gerente = request.user.perfil_gerente.empresa
-                # Filtra candidatos que tenham uma inscrição com status 'aprovado'
-                # para uma vaga que seja da empresa do gerente.
+                # Filtra candidatos APROVADOS para a loja do gerente
+                # E QUE AINDA NÃO FORAM CONTRATADOS.
                 return qs.filter(
                     inscricao__status='aprovado',
-                    inscricao__vaga__empresa=empresa_gerente
-                ).distinct() # .distinct() para não mostrar o mesmo candidato duas vezes
+                    inscricao__vaga__empresa=empresa_gerente,
+                    contratado=False  # <-- A CORREÇÃO ESSENCIAL
+                ).distinct()
             except PerfilGerente.DoesNotExist:
                 return qs.none()
         
+        # --- Para todos os outros, não mostra nada ---
         return qs.none()
-    
-    
-    # Reescrevemos a lógica de filtro para ser mais eficiente e não quebrar a ação de apagar
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        
-        # Pega os IDs dos candidatos que têm pelo menos uma inscrição completa
-        complete_candidates_ids = set(
-            Inscricao.objects.exclude(status='incompleto')
-            .values_list('candidato_id', flat=True)
-        )
-
-        # Filtra a lista para mostrar apenas os candidatos relevantes
-        qs = qs.filter(
-            Q(id__in=complete_candidates_ids) | Q(contratado=True)
-        )
-
-        # Aplica a regra de esconder os contratados, a não ser que o utilizador esteja a filtrar por eles
-        if 'contratado__exact' in request.GET:
-            return qs
-        
-        return qs.filter(contratado=False)
     # ----------------------
     # --- CORREÇÃO: Reintroduzida a organização em abas (fieldsets) ---
     fieldsets = (
@@ -317,6 +309,33 @@ class InscricaoAdmin(admin.ModelAdmin):
 
     # Diz ao admin para usar o nosso novo "molde" para esta página
     change_list_template = "admin/vagas/inscricao/change_list.html"
+    
+    # --- MÉTODO ATUALIZADO COM A LÓGICA DE PERMISSÃO ---
+    def get_queryset(self, request):
+        # Pega a queryset base
+        qs = super().get_queryset(request)
+
+        # Superusuários veem todas as inscrições (exceto as irrelevantes)
+        if request.user.is_superuser:
+            return qs.exclude(status='incompleto').filter(candidato__contratado=False)
+
+        # Gerentes veem uma lista filtrada
+        if request.user.groups.filter(name='Gerentes').exists():
+            try:
+                # Pega a empresa do gerente logado
+                empresa_gerente = request.user.perfil_gerente.empresa
+                
+                # Filtra para mostrar apenas inscrições APROVADAS para vagas da SUA empresa
+                return qs.filter(
+                    vaga__empresa=empresa_gerente,
+                    status='aprovado'
+                )
+            except PerfilGerente.DoesNotExist:
+                # Se o gerente não tiver um perfil vinculado a uma loja, não vê nada
+                return qs.none()
+        
+        # Outros usuários (que não são superusuários nem gerentes) não veem nada
+        return qs.none()    
     
     # CORREÇÃO: As duas regras de filtro foram combinadas numa única função
     def get_queryset(self, request):
