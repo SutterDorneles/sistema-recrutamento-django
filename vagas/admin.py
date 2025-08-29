@@ -594,7 +594,7 @@ class FuncionarioAdmin(admin.ModelAdmin):
             return [
                 'get_nome', 'get_email', 'get_cpf', 'get_contato', 'get_idade', 'get_sexo',
                 'get_estado_civil', 'get_endereco_completo',
-                'tempo_de_servico', 'data_admissao', 'mostrar_historico',
+                'tempo_de_servico', 'mostrar_historico',
             ]
         return ()
     
