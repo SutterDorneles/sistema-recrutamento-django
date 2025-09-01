@@ -1,0 +1,83 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block content %}
+<p class="breadcrumbs"><a href="{% url 'admin:index' %}">{% translate 'Home' %}</a> &rsaquo; <a href="{% url 'admin:vagas_vaga_changelist' %}">Vagas</a> &rsaquo; {% translate 'Replicar vagas' %}</p>
+
+<div id="content-main" style="margin-top: 40px;">
+    <div class="module">
+        <h2>Replicar Vagas para Outra Empresa</h2>
+        <p>Você está prestes a replicar as seguintes vagas:</p>
+        <ul>
+            {% for vaga in queryset %}
+                <li>{{ vaga.titulo }} ({{ vaga.empresa.nome }})</li>
+            {% endfor %}
+        </ul>
+        <br>
+        <form action="" method="post">{% csrf_token %}
+            <input type="hidden" name="action" value="{{ action_name }}">
+            {% for vaga in queryset %}
+                <input type="hidden" name="_selected_action" value="{{ vaga.pk }}">
+            {% endfor %}
+
+            <div class="form-row">
+                <label for="id_empresa">Selecione a empresa de destino:</label>
+                <select name="empresa" id="id_empresa">
+                    <option value="">---------</option>
+                    {% for empresa in empresas %}
+                        <option value="{{ empresa.id }}">{{ empresa.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="submit-row">
+                <input type="submit" name="apply" value="Replicar" class="default">
+                <a href="{{ path }}" class="button cancel-link">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* Estilos para o formulário */
+    .form-row {
+        margin-bottom: 1em;
+    }
+    .form-row label {
+        display: block;
+        font-weight: bold;
+        padding-bottom: 0.2em;
+    }
+    .form-row select {
+        padding: 0.5em;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        width: 100%;
+        max-width: 300px;
+    }
+    .submit-row {
+        padding: 12px 14px;
+        margin-top: 10px;
+        background: #f8f8f8;
+        border-top: 1px solid #eee;
+        overflow: auto;
+    }
+    .submit-row input {
+        border-radius: 4px;
+        cursor: pointer;
+        padding: 8px 12px;
+        color: #fff;
+        background: #007bff;
+        border: 1px solid #007bff;
+        float: right;
+    }
+    .submit-row a.cancel-link {
+        float: right;
+        display: block;
+        margin-right: 1em;
+        line-height: 2.2em;
+        color: #666;
+    }
+</style>
+
+{% endblock %}

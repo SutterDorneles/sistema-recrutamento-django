@@ -44,6 +44,7 @@ class Vaga(models.Model):
     tipo_cargo = models.CharField(max_length=100, choices=CARGO_CHOICES, null=True, blank=True)
     data_criacao = models.DateTimeField(auto_now_add=True)
     def __str__(self): return f"{self.titulo} ({self.empresa.nome})"
+        
 
 class Candidato(models.Model):
     nome = models.CharField(verbose_name="Nome Completo", max_length=100)

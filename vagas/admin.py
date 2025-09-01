@@ -206,6 +206,53 @@ class VagaAdmin(admin.ModelAdmin):
     search_fields = ('titulo', 'descricao', 'empresa__nome')
     list_filter = ('empresa', 'tipo_cargo', 'turno', 'data_criacao',)
     inlines = [InscricaoInline]
+    
+    # Adicione a nova ação de admin aqui
+    actions = ['replicar_vagas']
+
+    def replicar_vagas(self, request, queryset):
+        # Passo 2: O usuário confirmou a empresa de destino
+        if 'apply' in request.POST:
+            empresa_id = request.POST.get('empresa')
+
+            if not empresa_id:
+                self.message_user(request, "Por favor, selecione uma empresa.", level=messages.ERROR)
+                return HttpResponseRedirect(request.get_full_path())
+            
+            try:
+                nova_empresa = Empresa.objects.get(id=empresa_id)
+            except Empresa.DoesNotExist:
+                self.message_user(request, "Empresa selecionada não existe.", level=messages.ERROR)
+                return HttpResponseRedirect(request.get_full_path())
+            
+            vagas_replicadas = 0
+            for vaga in queryset:
+                # Cria uma nova instância da Vaga
+                # com os mesmos dados, mas com a nova empresa
+                Vaga.objects.create(
+                    titulo=vaga.titulo,
+                    descricao=vaga.descricao,
+                    requisitos=vaga.requisitos,
+                    turno=vaga.turno,
+                    tipo_cargo=vaga.tipo_cargo,
+                    empresa=nova_empresa, # A magia acontece aqui!
+                )
+                vagas_replicadas += 1
+
+            self.message_user(request, f"{vagas_replicadas} vaga(s) replicada(s) para a empresa '{nova_empresa.nome}'.")
+            return HttpResponseRedirect(request.get_full_path())
+            
+        # Passo 1: Exibir o formulário de seleção da empresa
+        context = {
+            'queryset': queryset,
+            'empresas': Empresa.objects.all(),
+            'action_name': 'replicar_vagas',
+            'path': request.get_full_path(),
+            'title': "Replicar Vagas para Outra Empresa"
+        }
+        return render(request, 'admin/replicar_vagas_form.html', context)
+
+    replicar_vagas.short_description = "Replicar vagas selecionadas para outra empresa"    
 
 class CandidatoAdmin(admin.ModelAdmin):
     list_display = ('nome', 'email', 'perfil_comportamental', 'ultima_empresa_inscrita', 'ultima_vaga_inscrita', 'whatsapp_link', 'contratado')
