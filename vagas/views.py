@@ -9,6 +9,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.db.models import Q, Count
 from django.urls import reverse
+from django.db import IntegrityError
 
 def _enviar_emails_candidatura(request, inscricao):
     """Função auxiliar para enviar os e-mails após a conclusão do teste."""
@@ -98,22 +99,53 @@ def detalhes_vaga(request, vaga_id):
 
 def candidatar(request, vaga_id):
     vaga = get_object_or_404(Vaga, id=vaga_id)
+    
     if request.method == 'POST':
         form = CandidaturaForm(request.POST, request.FILES)
+        
         if form.is_valid():
             email_candidato = form.cleaned_data['email']
-            candidato, created = Candidato.objects.get_or_create(
-                email=email_candidato,
-                defaults=form.cleaned_data
-            )
-            # Apenas cria a inscrição se não existir
-            if not Inscricao.objects.filter(vaga=vaga, candidato=candidato).exists():
-                Inscricao.objects.create(vaga=vaga, candidato=candidato)
+
+            # 1. Tenta encontrar um candidato existente com este e-mail
+            candidato_existente = Candidato.objects.filter(email=email_candidato).first()
             
-            # Redireciona para o teste SEM enviar e-mail
-            return redirect('realizar_teste', candidato_id=candidato.id)
+            # 2. Se o candidato existir, verifica as inscrições dele
+            if candidato_existente:
+                # Procura por uma inscrição incompleta para este candidato.
+                inscricao_incompleta = Inscricao.objects.filter(
+                    candidato=candidato_existente, status='incompleto'
+                ).first()
+                
+                if inscricao_incompleta:
+                    # Cenário: Candidato com Inscrição Incompleta.
+                    # Reaproveita a inscrição, atualiza a vaga se for diferente
+                    inscricao_incompleta.vaga = vaga
+                    inscricao_incompleta.save()
+                    return redirect('realizar_teste', candidato_id=candidato_existente.id)
+                else:
+                    # Cenário: Candidato já com uma ou mais candidaturas completas.
+                    # Cria uma nova inscrição para a nova vaga.
+                    inscricao = Inscricao.objects.create(
+                        vaga=vaga, candidato=candidato_existente, status='incompleto'
+                    )
+                    return redirect('realizar_teste', candidato_id=candidato_existente.id)
+            
+            # 3. Se o candidato não existir, cria um novo perfil e a primeira inscrição
+            else:
+                try:
+                    novo_candidato = Candidato.objects.create(**form.cleaned_data)
+                    Inscricao.objects.create(
+                        vaga=vaga, candidato=novo_candidato, status='incompleto'
+                    )
+                    return redirect('realizar_teste', candidato_id=novo_candidato.id)
+                except IntegrityError:
+                    # Este bloco é um "plano B" caso a unicidade falhe
+                    form.add_error('email', 'Este e-mail já está em uso por outro processo. Por favor, entre em contato se precisar de ajuda.')
+                    return render(request, 'vagas/formulario_candidatura.html', {'vaga': vaga, 'form': form})
+    
     else:
         form = CandidaturaForm()
+    
     return render(request, 'vagas/formulario_candidatura.html', {'vaga': vaga, 'form': form})
 
 def realizar_teste(request, candidato_id):

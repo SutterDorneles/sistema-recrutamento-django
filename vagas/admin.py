@@ -34,7 +34,10 @@ class MyDashboardAdminSite(admin.AdminSite):
             # ROTA CORRIGIDA E ADICIONADA DE AGENDAR ENTREVISTA
             path('pipeline/agendar_entrevista/<int:inscricao_id>/', self.admin_view(self.agendar_entrevista_view), name='pipeline_agendar_entrevista'),
             # NOVA ROTA PARA O AUTO-SAVE
-            path('inscricao/ajax_change_status/', self.admin_view(self.ajax_change_status_view), name='ajax_change_inscricao_status'),            
+            path('inscricao/ajax_change_status/', self.admin_view(self.ajax_change_status_view), name='ajax_change_inscricao_status'),  
+            # ✅ NOVA ROTA PARA AS INSCRIÇÕES INCOMPLETAS
+            path('inscricoes/incompletas/', self.admin_view(self.inscricoes_incompletas_view), name='inscricoes_incompletas'),     
+            path('inscricao/tornar_recebida/<int:inscricao_id>/', self.admin_view(self.tornar_recebida_view), name='tornar_recebida'),                             
         ]
         return custom_urls + urls
 
@@ -48,11 +51,12 @@ class MyDashboardAdminSite(admin.AdminSite):
         candidatos_entrevista = Inscricao.objects.filter(status='entrevista').count()
         candidatos_aprovados = Inscricao.objects.filter(status='aprovado').count()
         candidatos_rejeitados = Inscricao.objects.filter(status='rejeitado').count()
+        url_incompletas = reverse('myadmin:inscricoes_incompletas')                
         total_aguia = Candidato.objects.filter(perfil_comportamental__icontains='Águia').count()
         total_gato = Candidato.objects.filter(perfil_comportamental__icontains='Gato').count()
         total_tubarao = Candidato.objects.filter(perfil_comportamental__icontains='Tubarão').count()
         total_lobo = Candidato.objects.filter(perfil_comportamental__icontains='Lobo').count()
-        
+
         #recent_actions = LogEntry.objects.select_related('content_type', 'user').all()[:10]     
         
         base_inscricao_url = reverse('admin:vagas_inscricao_changelist')
@@ -68,6 +72,7 @@ class MyDashboardAdminSite(admin.AdminSite):
             'url_entrevista': f"{base_inscricao_url}?status__exact=entrevista",
             'url_aprovados': f"{base_inscricao_url}?status__exact=aprovado",
             'url_rejeitados': f"{base_inscricao_url}?status__exact=rejeitado",
+            'url_incompletas': url_incompletas,            
             'total_aguia': total_aguia,
             'total_gato': total_gato,
             'total_tubarao': total_tubarao,
@@ -96,7 +101,6 @@ class MyDashboardAdminSite(admin.AdminSite):
         return JsonResponse({'success': False, 'message': 'Apenas pedidos POST são permitidos.'}, status=400)
     # --- FIM DA NOVA VIEW ---    
     
-    
     # --- NOVA VIEW PARA A PÁGINA DE AGENDAMENTO ---
     def agendar_entrevista_view(self, request, inscricao_id):
         inscricao = get_object_or_404(Inscricao, id=inscricao_id)
@@ -116,7 +120,6 @@ class MyDashboardAdminSite(admin.AdminSite):
         context['inscricao'] = inscricao
         context['title'] = f"Agendar Entrevista: {inscricao.candidato.nome}"
         return render(request, 'admin/agendar_entrevista_form.html', context)
-
 
     def pipeline_view(self, request):
         context = self.each_context(request)
@@ -144,6 +147,20 @@ class MyDashboardAdminSite(admin.AdminSite):
             messages.error(request, "Status inválido.")
         redirect_url = reverse('admin:pipeline') + f'?vaga_id={inscricao.vaga.id}'
         return HttpResponseRedirect(redirect_url)
+    
+    def tornar_recebida_view(self, request, inscricao_id):
+        inscricao = get_object_or_404(Inscricao, id=inscricao_id)
+
+        # Apenas se a inscrição estiver incompleta, permita a mudança
+        if inscricao.status == 'incompleto':
+            inscricao.status = 'recebida'
+            inscricao.save()
+            messages.success(request, f"A candidatura de {inscricao.candidato.nome} foi marcada como 'Recebida'.")
+        else:
+            messages.warning(request, "Esta candidatura não está no status 'Incompleto' e não pode ser alterada.")
+
+        # Redireciona de volta para a página de inscrições incompletas
+        return HttpResponseRedirect(reverse('myadmin:inscricoes_incompletas'))    
 
     # VIEW CENTRALIZADA PARA A PÁGINA DE CONTRATAÇÃO
     def contratar_view(self, request, inscricao_id):
@@ -184,6 +201,20 @@ class MyDashboardAdminSite(admin.AdminSite):
         context['inscricao'] = inscricao
         context['title'] = f"Contratar: {inscricao.candidato.nome}"
         return render(request, 'admin/contratar_form.html', context)
+    
+    # ✅ NOVA VIEW PARA EXIBIR APENAS AS INSCRIÇÕES INCOMPLETAS
+    def inscricoes_incompletas_view(self, request):
+        context = self.each_context(request)
+        
+        # Pega APENAS as inscrições com status 'incompleto'
+        incompleto_qs = Inscricao.objects.filter(status='incompleto').order_by('-data_inscricao')
+
+        # Passa o queryset para o template
+        context['inscricoes'] = incompleto_qs
+        context['title'] = "Inscrições Incompletas"
+        context['opts'] = Inscricao._meta
+        
+        return render(request, 'admin/vagas/inscricao/incompleto_list.html', context)    
 
 admin_site = MyDashboardAdminSite(name='myadmin')
 
@@ -413,7 +444,8 @@ class InscricaoAdmin(admin.ModelAdmin):
     def marcar_como_rejeitado(self, request, queryset):
         queryset.update(status='rejeitado')
         self.message_user(request, f"{queryset.count()} inscrições foram marcadas como 'Rejeitado'.")
-    marcar_como_rejeitado.short_description = "Marcar selecionadas como 'Rejeitado'"
+    marcar_como_rejeitado.short_description = "Marcar selecionadas como 'Rejeitado'"      
+    
     def exportar_para_csv(self, request, queryset):
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="candidatos.csv"'

@@ -74,7 +74,7 @@ class Candidato(models.Model):
     lazer = models.TextField(verbose_name="O que você mais gosta de fazer nas horas vagas?", blank=True, default="")
     objetivo_curto_prazo = models.TextField(verbose_name="Quais são seus objetivos pessoais a curto prazo", blank=True, default="")
     objetivo_longo_prazo = models.TextField(verbose_name="Quais são seus objetivos pessoais a longo prazo", blank=True, default="")
-    email = models.EmailField(unique=True) # E-mail deve ser único
+    email = models.EmailField() 
     curriculo = models.FileField(verbose_name="Currículo", upload_to='curriculos/', blank=True, null=True)
     total_i = models.IntegerField(default=0, verbose_name="Total 'I' (Águia)")
     total_c = models.IntegerField(default=0, verbose_name="Total 'C' (Gato)")
