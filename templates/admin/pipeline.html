@@ -7,7 +7,7 @@
         .pipeline-header { margin-bottom: 20px; }
         .pipeline-grid {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(6, 1fr);
             gap: 15px;
             overflow-x: auto;
         }
@@ -110,8 +110,11 @@
                                 {% elif inscricao.status == 'aprovado' %}
                                     <!-- CORREÇÃO: O link agora aponta para a nova página de contratação -->
                                     <a href="{% url 'admin:contratar_candidato' inscricao.id %}" class="btn-pipeline btn-hire"><i class="fas fa-user-tie"></i> Contratar</a>
+                                    <a href="{% url 'admin:pipeline_change_status' inscricao.id 'aguardando_documentacao' %}" class="btn-pipeline btn-hire"><i class="fas fa-file-alt"></i> Mover p/ Doc</a>                                    
+                                {% elif inscricao.status == 'aguardando_documentacao' %}
+                                    <a href="{% url 'admin:contratar_candidato' inscricao.id %}" class="btn-pipeline btn-hire"><i class="fas fa-user-tie"></i> Contratar</a>                                        
                                 {% endif %}
-
+                            
                                 {% if inscricao.status != 'rejeitado' and inscricao.status != 'aprovado' %}
                                     <a href="{% url 'admin:pipeline_change_status' inscricao.id 'rejeitado' %}" class="btn-pipeline btn-reject"><i class="fas fa-times"></i></a>
                                 {% endif %}

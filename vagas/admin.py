@@ -128,7 +128,7 @@ class MyDashboardAdminSite(admin.AdminSite):
         if selected_vaga_id:
             selected_vaga = get_object_or_404(Vaga, id=selected_vaga_id)
             inscricoes = Inscricao.objects.filter(vaga=selected_vaga).exclude(status='incompleto').order_by('data_inscricao')
-            pipeline_status = {'recebida': [], 'em_analise': [], 'entrevista': [], 'aprovado': [], 'rejeitado': []}
+            pipeline_status = {'recebida': [], 'em_analise': [], 'entrevista': [], 'aprovado': [],  'aguardando_documentacao': [], 'rejeitado': []}
             for inscricao in inscricoes:
                 if inscricao.status in pipeline_status:
                     pipeline_status[inscricao.status].append(inscricao)
@@ -423,7 +423,7 @@ class InscricaoAdmin(admin.ModelAdmin):
     whatsapp_do_candidato.short_description = "WhatsApp"
 
     def acoes_contratacao(self, obj):
-        if obj.status == 'aprovado' and not obj.candidato.contratado:
+        if (obj.status == 'aguardando_documentacao' or obj.status == 'aprovado') and not obj.candidato.contratado:
             url = reverse('admin:contratar_candidato', args=[obj.id])
             return format_html('<a href="{}" class="button">Contratar</a>', url)
         return "—"
@@ -441,6 +441,11 @@ class InscricaoAdmin(admin.ModelAdmin):
         queryset.update(status='aprovado')
         self.message_user(request, f"{queryset.count()} inscrições foram marcadas como 'Aprovado'.")
     marcar_como_aprovado.short_description = "Marcar selecionadas como 'Aprovado'"
+    # ✅ Adicione este novo método à sua classe InscricaoAdmin
+    def marcar_como_aguardando_documentacao(self, request, queryset):
+        queryset.update(status='aguardando_documentacao')
+        self.message_user(request, f"{queryset.count()} inscrições foram marcadas como 'Aguardando Documentação'.")
+    marcar_como_aguardando_documentacao.short_description = "Marcar selecionadas como 'Aguardando Documentação'"    
     def marcar_como_rejeitado(self, request, queryset):
         queryset.update(status='rejeitado')
         self.message_user(request, f"{queryset.count()} inscrições foram marcadas como 'Rejeitado'.")

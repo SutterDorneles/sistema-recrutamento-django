@@ -221,12 +221,12 @@ class Inscricao(models.Model):
     STATUS_CHOICES = [
         ('incompleto', 'Incompleto'),        
         ('recebida', 'Recebida'), ('em_analise', 'Em Análise'), ('entrevista', 'Entrevista Agendada'),
-        ('aprovado', 'Aprovado'), ('rejeitado', 'Rejeitado'),
+        ('aprovado', 'Aprovado'), ('aguardando_documentacao', 'Aguardando Documentação'), ('rejeitado', 'Rejeitado'),
     ]
     vaga = models.ForeignKey(Vaga, on_delete=models.CASCADE)
     candidato = models.ForeignKey(Candidato, on_delete=models.CASCADE)
     data_inscricao = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='incompleto', verbose_name="Status da Candidatura")
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='incompleto', verbose_name="Status da Candidatura")
     notas_internas = models.TextField(blank=True, null=True, verbose_name="Notas Internas do Recrutador")
     
     # --- Correção do plural no menu lateral ---
