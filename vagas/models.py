@@ -228,6 +228,11 @@ class Inscricao(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='incompleto', verbose_name="Status da Candidatura")
     notas_internas = models.TextField(blank=True, null=True, verbose_name="Notas Internas do Recrutador")
     
+    # --- Correção do plural no menu lateral ---
+    class Meta:
+        verbose_name = "Inscrição"
+        verbose_name_plural = "Inscrições"    
+    
     # --- NOVOS CAMPOS PARA A AGENDA ---
     data_entrevista = models.DateTimeField(null=True, blank=True, verbose_name="Data e Hora da Entrevista")
     # ----------------------------------    

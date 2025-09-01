@@ -125,6 +125,8 @@ else:
 
 # --- CONFIGURAÇÕES DO DJANGO JAZZMIN (VERSÃO ESTÁVEL) ---
 JAZZMIN_SETTINGS = {
+
+    
     "site_title": "Painel RH Ori",
     "site_header": "RH Orientado",
     "welcome_sign": "Bem-vindo ao Painel de Gestão de RH",
@@ -145,7 +147,7 @@ JAZZMIN_SETTINGS = {
         "vagas.funcionariocomobservacao", 
         "vagas.funcionario",
         "vagas.pergunta",
-        "vagas.respostacandidato"
+        "vagas.respostacandidato",
         "auth.user",
         "auth.group",
     ],
@@ -155,8 +157,15 @@ JAZZMIN_SETTINGS = {
         "vagas": {
             "name": "Gestão de Pessoas",
             "icon": "fas fa-users-cog",
+            
+           # --- ADICIONE ESTA SEÇÃO AQUI ---
+           "models": {
+               "inscricao": {
+                   "name": "Inscrição",  # Nome no singular (opcional, mas bom ter)
+                   "verbose_name_plural": "Inscrições" # Nome no plural para o menu
+               }
+           }
         }
-        
         
     },
 

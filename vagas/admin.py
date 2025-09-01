@@ -305,7 +305,7 @@ class InscricaoAdmin(admin.ModelAdmin):
     list_filter = ('vaga__tipo_cargo','vaga__empresa__nome', 'status', 'data_inscricao')
     search_fields = ('candidato__nome', 'candidato__email', 'vaga__titulo')
     list_editable = ('status',)
-
+    
     # Diz ao admin para usar o nosso novo "molde" para esta página
     change_list_template = "admin/vagas/inscricao/change_list.html"
     
