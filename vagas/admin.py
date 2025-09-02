@@ -763,9 +763,35 @@ class FuncionarioAdmin(admin.ModelAdmin):
             
             obj.perfil_candidato = candidato
             if not obj.status: obj.status = 'ativo'
+            
+        # ✅ LÓGICA DE REABERTURA DA VAGA
+        if change and 'status' in form.changed_data and obj.status == 'demitido':
+            
+            vaga_para_reabrir = Vaga.objects.filter(
+                empresa=obj.empresa,
+                tipo_cargo=obj.cargo,
+                ativo=False
+            ).first()
 
-        if change and 'status' in form.changed_data and obj.status == 'demitido' and not obj.data_demissao:
-            obj.data_demissao = timezone.now().date()
+            if vaga_para_reabrir:
+                # ✅ CORREÇÃO AQUI: Exclua o funcionário que está sendo demitido da contagem
+                num_ativos = Funcionario.objects.filter(
+                    empresa=vaga_para_reabrir.empresa,
+                    cargo=vaga_para_reabrir.tipo_cargo,
+                    status='ativo'
+                ).exclude(pk=obj.pk).count()
+                
+                if num_ativos < vaga_para_reabrir.numero_vagas:
+                    vaga_para_reabrir.ativo = True
+                    vaga_para_reabrir.save()
+                    messages.success(request, f"A vaga de '{vaga_para_reabrir.tipo_cargo}' na empresa '{vaga_para_reabrir.empresa.nome}' foi reaberta automaticamente.")
+                else:
+                    messages.info(request, f"O funcionário '{obj.perfil_candidato.nome}' foi demitido, mas a vaga de '{vaga_para_reabrir.tipo_cargo}' continua preenchida.")
+            else:
+                messages.warning(request, f"O funcionário '{obj.perfil_candidato.nome}' foi demitido, mas não foi encontrada uma vaga fechada correspondente para reabrir.")
+            
+            if not obj.data_demissao:
+                obj.data_demissao = timezone.now().date()
         
         super().save_model(request, obj, form, change)
 
