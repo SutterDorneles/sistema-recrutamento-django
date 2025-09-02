@@ -43,6 +43,8 @@ class Vaga(models.Model):
     turno = models.CharField(max_length=50, choices=TURNO_CHOICES, null=True, blank=True)
     tipo_cargo = models.CharField(max_length=100, choices=CARGO_CHOICES, null=True, blank=True)
     data_criacao = models.DateTimeField(auto_now_add=True)
+    numero_vagas = models.IntegerField(default=1, verbose_name="Número de Vagas")    
+    ativo = models.BooleanField(default=True, verbose_name="Vaga Ativa")    
     def __str__(self): return f"{self.titulo} ({self.empresa.nome})"
         
 

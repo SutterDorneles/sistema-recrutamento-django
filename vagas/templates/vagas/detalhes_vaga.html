@@ -4,15 +4,29 @@
 
 {% block content %}
     <h1>{{ vaga.titulo }}</h1>
-    <!-- Adicionamos o nome da empresa para clareza -->
     <h3>Empresa: {{ vaga.empresa.nome }}</h3>
     
+    {# ✅ DESCRIÇÃO E REQUISITOS SEMPRE APARECEM #}
     <p>{{ vaga.descricao|linebreaks }}</p>
     <p><strong>Requisitos:</strong> {{ vaga.requisitos|linebreaks }}</p>
 
     <hr>
-    <a href="{% url 'candidatar' vaga.id %}" class="btn">Candidatar-se a esta vaga</a>
+
+    {% if vaga.ativo %}
+        {# ✅ Vaga ativa: Exibe o botão de candidatura normal #}
+        <a href="{% url 'candidatar' vaga.id %}" class="btn">Candidatar-se a esta vaga</a>
+    {% else %}
+        {# ✅ Vaga inativa: Exibe a mensagem de aviso e o botão para o banco de talentos #}
+        <div class="vaga-inativa-container">
+            <h3 class="text-danger">Não estamos contratando para esta vaga no momento.</h3>
+            <p>
+                Essa vaga já foi preenchida. No entanto, preencha o formulário e a avaliação comportamental e entre para nosso 
+                banco de talentos. Entraremos em contato assim que uma nova oportunidade surgir!
+            </p>
+        </div>
+        <a href="{% url 'candidatar' vaga.id %}" class="btn">Entrar para o Banco de Talentos</a>
+    {% endif %}
+    
     <br><br>
-    <!-- Link de "voltar" corrigido para apontar para a lista de vagas da empresa correta -->
     <a href="{% url 'lista_vagas' vaga.empresa.id %}">&larr; Voltar para a lista de vagas</a>
 {% endblock %}

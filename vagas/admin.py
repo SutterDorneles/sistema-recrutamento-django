@@ -180,6 +180,23 @@ class MyDashboardAdminSite(admin.AdminSite):
                     )
                     inscricao.candidato.contratado = True
                     inscricao.candidato.save()
+                    
+                    # ✅ NOVO CÓDIGO: Lógica para fechar a vaga
+                    vaga_contratada = inscricao.vaga
+                    
+                    # 1. Conta quantos funcionários ativos existem para o mesmo cargo e empresa
+                    #    A comparação será feita entre CharFields
+                    num_funcionarios_contratados = Funcionario.objects.filter(
+                        empresa=vaga_contratada.empresa,
+                        cargo=vaga_contratada.tipo_cargo,
+                        status='ativo'
+                    ).count()
+                    
+                    # 2. Compara com o número de vagas abertas
+                    if num_funcionarios_contratados >= vaga_contratada.numero_vagas:
+                        vaga_contratada.ativo = False
+                        vaga_contratada.save()                    
+                    
                     messages.success(request, f"{inscricao.candidato.nome} foi contratado com sucesso!")
                     return HttpResponseRedirect(reverse('admin:vagas_funcionarioativo_changelist'))
                 else:
@@ -232,10 +249,10 @@ class InscricaoInline(admin.TabularInline):
         return qs.filter(candidato__contratado=False)
 
 class VagaAdmin(admin.ModelAdmin):
-    # ... (código do VagaAdmin continua o mesmo)
-    list_display = ('titulo', 'empresa', 'tipo_cargo', 'turno', 'data_criacao')
+    list_display = ('titulo', 'empresa', 'tipo_cargo', 'numero_vagas', 'ativo', 'turno', 'data_criacao')
     search_fields = ('titulo', 'descricao', 'empresa__nome')
-    list_filter = ('empresa', 'tipo_cargo', 'turno', 'data_criacao',)
+    list_filter = ('empresa', 'tipo_cargo', 'turno', 'data_criacao','ativo')
+    list_editable = ('numero_vagas','ativo',)
     inlines = [InscricaoInline]
     
     # Adicione a nova ação de admin aqui
