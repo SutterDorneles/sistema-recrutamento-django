@@ -21,6 +21,7 @@ from django.contrib.admin.models import LogEntry
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin, GroupAdmin
 from django.core.exceptions import PermissionDenied
+from urllib.parse import quote 
 
 class MyDashboardAdminSite(admin.AdminSite):
     def get_urls(self):
@@ -166,6 +167,9 @@ class MyDashboardAdminSite(admin.AdminSite):
     def contratar_view(self, request, inscricao_id):
         inscricao = get_object_or_404(Inscricao, id=inscricao_id)
         
+    # ✅ ALTERAÇÃO AQUI: Pega o 'next' do request.GET (URL)
+        next_url = request.GET.get('next', reverse('admin:vagas_inscricao_changelist'))  
+        
         if request.method == 'POST':
             form = ContratacaoForm(request.POST)
             if form.is_valid():
@@ -198,7 +202,9 @@ class MyDashboardAdminSite(admin.AdminSite):
                         vaga_contratada.save()                    
                     
                     messages.success(request, f"{inscricao.candidato.nome} foi contratado com sucesso!")
-                    return HttpResponseRedirect(reverse('admin:vagas_funcionarioativo_changelist'))
+                     # ✅ ALTERAÇÃO AQUI: Usa o 'next' que veio do POST
+                    next_url_from_post = request.POST.get('next', next_url)
+                    return HttpResponseRedirect(next_url)                    
                 else:
                     messages.warning(request, f"{inscricao.candidato.nome} já consta como contratado.")
                     return HttpResponseRedirect(reverse('admin:vagas_inscricao_changelist'))
@@ -217,6 +223,7 @@ class MyDashboardAdminSite(admin.AdminSite):
         context['form'] = form
         context['inscricao'] = inscricao
         context['title'] = f"Contratar: {inscricao.candidato.nome}"
+        context['next_url'] = next_url        
         return render(request, 'admin/contratar_form.html', context)
     
     # ✅ NOVA VIEW PARA EXIBIR APENAS AS INSCRIÇÕES INCOMPLETAS
@@ -432,6 +439,11 @@ class InscricaoAdmin(admin.ModelAdmin):
         qs = super().get_queryset(request)
         # Exclui tanto as inscrições incompletas como as de candidatos já contratados
         return qs.exclude(status='incompleto').filter(candidato__contratado=False)
+    
+    # ✅ NOVO MÉTODO QUE SUBSTITUI O SEU get_queryset ANTIGO
+    def changelist_view(self, request, extra_context=None):
+        self.request = request
+        return super().changelist_view(request, extra_context)    
 
     def whatsapp_do_candidato(self, obj):
         url = obj.candidato.get_whatsapp_url()
@@ -439,9 +451,12 @@ class InscricaoAdmin(admin.ModelAdmin):
         return format_html('<a href="{}" target="_blank"><i class="fab fa-whatsapp"></i> Contatar</a>', url)
     whatsapp_do_candidato.short_description = "WhatsApp"
 
+    # ✅ FUNÇÃO acoes_contratacao CORRIGIDA
     def acoes_contratacao(self, obj):
-        if (obj.status == 'aguardando_documentacao' or obj.status == 'aprovado') and not obj.candidato.contratado:
-            url = reverse('admin:contratar_candidato', args=[obj.id])
+        if (obj.status == 'aprovado' or obj.status == 'aguardando_documentacao') and not obj.candidato.contratado:
+            # ✅ Agora self.request tem o valor do request correto
+            next_url = self.request.get_full_path()
+            url = reverse('myadmin:contratar_candidato', args=[obj.id]) + f"?next={quote(next_url)}"
             return format_html('<a href="{}" class="button">Contratar</a>', url)
         return "—"
     acoes_contratacao.short_description = 'Ações'

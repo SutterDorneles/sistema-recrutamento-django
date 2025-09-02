@@ -9,6 +9,7 @@
 <div id="content-main">
     <form method="post">
         {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next_url }}">        
         <!-- CORREÇÃO: Removido o <div class="row"> e <div class="col-12"> para um layout mais amplo -->
         <div class="card card-primary">
             <div class="card-header">
