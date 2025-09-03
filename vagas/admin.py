@@ -7,7 +7,7 @@ from .models import (
     Vaga, Candidato, Inscricao, Pergunta, RespostaCandidato, Empresa, Funcionario,
     FuncionarioAtivo, FuncionarioDemitido, FuncionarioComObservacao, Cargo, HistoricoFuncionario, PerfilGerente
 )
-from .forms import ContratacaoForm, AgendamentoEntrevistaForm # Importamos o novo formulário
+from .forms import ContratacaoForm, AgendamentoEntrevistaForm
 import csv
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.utils import timezone
@@ -170,6 +170,24 @@ class MyDashboardAdminSite(admin.AdminSite):
     # ✅ ALTERAÇÃO AQUI: Pega o 'next' do request.GET (URL)
         next_url = request.GET.get('next', reverse('admin:vagas_inscricao_changelist'))  
         
+        # ✅ NOVO CÓDIGO: Mapeamento dos cargos
+        cargo_map = {
+            'Garçom': 'Atendente',
+            'Cumim': 'Atendente',
+            'Caixa': 'Operador de Caixa',
+            'Bartender': 'Copeiro',
+            'Montagem de lanche': 'Copeiro', 
+            'Cozinheiro': 'Cozinheiro',
+            'Chapeiro': 'Auxiliar de Cozinha', 
+            'Auxiliar de cozinha': 'Auxiliar de Cozinha',
+            'Auxiliar de limpeza': 'Auxiliar de limpeza',
+            'Serviços gerais': 'Auxiliar de Limpeza',
+            'Freelancer': 'Freelancer',
+            'Instrutor(a) de Treinamento Funcional' : 'Instrutor(a) de Treinamento Funcional',
+            'instrutor_funcional': 'Instrutor(a) de Treinamento Funcional',
+            'estagiario': 'Estagiário',
+        }        
+        
         if request.method == 'POST':
             form = ContratacaoForm(request.POST)
             if form.is_valid():
@@ -209,11 +227,20 @@ class MyDashboardAdminSite(admin.AdminSite):
                     messages.warning(request, f"{inscricao.candidato.nome} já consta como contratado.")
                     return HttpResponseRedirect(reverse('admin:vagas_inscricao_changelist'))
         else:
-            # --- ALTERAÇÃO AQUI ---
-            # Preenche o formulário com os dados da vaga original
+            # ✅ NOVO CÓDIGO: Lógica de mapeamento segura para 'None'
+            tipo_cargo_da_vaga = inscricao.vaga.tipo_cargo if inscricao.vaga.tipo_cargo else ''
+            cargo_nome_mapeado = cargo_map.get(tipo_cargo_da_vaga, None)
+            
+            cargo_obj = None
+            if cargo_nome_mapeado:
+                try:
+                    cargo_obj = Cargo.objects.get(nome=cargo_nome_mapeado)
+                except Cargo.DoesNotExist:
+                    messages.error(request, f"O cargo mapeado '{cargo_nome_mapeado}' não foi encontrado no sistema. Por favor, selecione um cargo manualmente.")
+                 
             initial_data = {
                 'empresa': inscricao.vaga.empresa,
-                'cargo': inscricao.vaga.tipo_cargo, 
+                'cargo': cargo_obj,
                 'data_admissao': timezone.now().date()
             }
             # ----------------------

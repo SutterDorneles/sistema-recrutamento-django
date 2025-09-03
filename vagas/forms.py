@@ -10,7 +10,7 @@ class CandidaturaForm(forms.ModelForm):
             'nome', 'sexo', 'cep', 'endereco', 'bairro', 'cidade', 'tempo_residencia',
             'contato', 'idade', 'estado_civil', 'tem_filhos', 'qtd_filhos',
             'idade_filhos', 'mora_com_filhos', 'moradia', 'meio_locomocao',
-            'habitos', 'preferencia_cargo', 'preferencia_turno', 'melhor_trabalho',
+            'habitos', 'preferencia_turno', 'melhor_trabalho',
             'pontos_fortes', 'lazer', 'objetivo_curto_prazo', 'objetivo_longo_prazo',
             'email', 'curriculo'
         ]
@@ -24,10 +24,6 @@ class CandidaturaForm(forms.ModelForm):
             'cidade': forms.TextInput(attrs={'id': 'cidade'}),
             'estado_civil': forms.Select(choices=[('Solteiro', 'Solteiro'), ('Casado', 'Casado'), ('Divorciado', 'Divorciado'), ('Viúvo', 'Viúvo')]),
             'moradia': forms.Select(choices=[('Aluguel', 'Moro de aluguel'), ('Propria', 'Tenho casa própria')]),
-            'preferencia_cargo': forms.Select(choices=[
-                ('Garçom', 'Garçom'), ('Cozinha', 'Cozinha'), ('Copa', 'Copa'),
-                ('Caixa', 'Caixa'), ('Serviços gerais', 'Serviços gerais'), ('Freelancer', 'Freelancer'),
-            ]),
             'preferencia_turno': forms.Select(choices=[
                 ('Diurno', 'Diurno (09:00 - 16:30)'),
                 ('Noturno', 'Noturno (16:30 - 23:30)'),
@@ -79,6 +75,7 @@ class ContratacaoForm(forms.Form):
     cargo = forms.ModelChoiceField(
         queryset=Cargo.objects.all(),
         label="Cargo de Contratação",
+        empty_label="--------",
         widget=forms.Select(attrs={'class': 'form-control'})
     )
     remuneracao = forms.DecimalField(
@@ -91,7 +88,6 @@ class ContratacaoForm(forms.Form):
         label="Data de Admissão",
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
     )
-    
 
 # --- NOVO FORMULÁRIO PARA AGENDAR ENTREVISTAS ---
 class AgendamentoEntrevistaForm(forms.Form):
