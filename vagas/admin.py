@@ -16,7 +16,7 @@ from django.urls import path, reverse
 from django.shortcuts import render, get_object_or_404
 from django import forms
 from django.utils.html import format_html
-from django.db.models import Q
+from django.db.models import Q, Count, Sum
 from django.contrib.admin.models import LogEntry
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin, GroupAdmin
@@ -181,7 +181,6 @@ class MyDashboardAdminSite(admin.AdminSite):
             'Chapeiro': 'Auxiliar de Cozinha', 
             'Auxiliar de cozinha': 'Auxiliar de Cozinha',
             'Auxiliar de limpeza': 'Auxiliar de limpeza',
-            'Serviços gerais': 'Auxiliar de Limpeza',
             'Freelancer': 'Freelancer',
             'Instrutor(a) de Treinamento Funcional' : 'Instrutor(a) de Treinamento Funcional',
             'instrutor_funcional': 'Instrutor(a) de Treinamento Funcional',
@@ -203,21 +202,33 @@ class MyDashboardAdminSite(admin.AdminSite):
                     inscricao.candidato.contratado = True
                     inscricao.candidato.save()
                     
-                    # ✅ NOVO CÓDIGO: Lógica para fechar a vaga
-                    vaga_contratada = inscricao.vaga
-                    
-                    # 1. Conta quantos funcionários ativos existem para o mesmo cargo e empresa
-                    #    A comparação será feita entre CharFields
+                # ✅ LÓGICA DE FECHAMENTO DE VAGA ATUALIZADA
+                vaga_contratada = inscricao.vaga
+                
+                # 1. Pega o nome do cargo genérico a partir do mapeamento
+                cargo_generico = cargo_map.get(vaga_contratada.tipo_cargo)
+                
+                if cargo_generico:
+                    # 2. Encontra todas as vagas que se mapeiam para este cargo genérico
+                    #    e soma o número total de vagas
+                    vagas_relacionadas = Vaga.objects.filter(
+                        empresa=vaga_contratada.empresa,
+                        tipo_cargo__in=[key for key, value in cargo_map.items() if value == cargo_generico]
+                    )
+                    total_vagas_genericas = vagas_relacionadas.aggregate(total=Sum('numero_vagas'))['total'] or 0
+
+                    # 3. Conta quantos funcionários ativos existem com este cargo genérico
                     num_funcionarios_contratados = Funcionario.objects.filter(
                         empresa=vaga_contratada.empresa,
-                        cargo=vaga_contratada.tipo_cargo,
+                        cargo=cargo_generico,
                         status='ativo'
                     ).count()
                     
-                    # 2. Compara com o número de vagas abertas
-                    if num_funcionarios_contratados >= vaga_contratada.numero_vagas:
-                        vaga_contratada.ativo = False
-                        vaga_contratada.save()                    
+                    # 4. Compara e fecha todas as vagas relacionadas se o número de contratados for suficiente
+                    if num_funcionarios_contratados >= total_vagas_genericas:
+                        # Desativa todas as vagas relacionadas
+                        messages.success(request, f"As vagas para '{cargo_generico}' foram fechadas automaticamente.")
+                        vagas_relacionadas.update(ativo=False)  
                     
                     messages.success(request, f"{inscricao.candidato.nome} foi contratado com sucesso!")
                      # ✅ ALTERAÇÃO AQUI: Usa o 'next' que veio do POST

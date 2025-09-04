@@ -33,8 +33,7 @@ class Vaga(models.Model):
     CARGO_CHOICES = [
         ('Garçom', 'Garçom'), ('Cumim', 'Cumim'), ('Caixa', 'Caixa'), ('Bartender', 'Bartender'),
         ('Montagem de lanche', 'Montagem de lanche'), ('Cozinheiro', 'Cozinheiro'), ('Chapeiro', 'Chapeiro'),
-        ('Auxiliar de cozinha', 'Auxiliar de cozinha'), ('Auxiliar de limpeza', 'Auxiliar de limpeza'),
-        ('Serviços gerais', 'Serviços gerais'), ('Freelancer', 'Freelancer'), ('instrutor_funcional', 'Instrutor(a) de Treinamento Funcional'), ('estagiario', 'Estagiário'),
+        ('Auxiliar de cozinha', 'Auxiliar de cozinha'), ('Auxiliar de limpeza', 'Auxiliar de limpeza'), ('Freelancer', 'Freelancer'), ('instrutor_funcional', 'Instrutor(a) de Treinamento Funcional'), ('estagiario', 'Estagiário'),
     ]
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name="vagas", verbose_name="Empresa")
     titulo = models.CharField(max_length=100)
