@@ -22,7 +22,7 @@ def _enviar_emails_candidatura(request, inscricao):
         mensagem_candidato = (
             f"Olá, {candidato.nome}!\n\n"
             f"Recebemos a sua candidatura para a vaga de '{vaga.titulo}' na empresa {vaga.empresa.nome}.\n\n"
-            "O seu perfil será analisado e entraremos em contacto caso seja selecionado para as próximas etapas.\n\n"
+            "O seu perfil será analisado e entraremos em contato caso seja selecionado para as próximas etapas.\n\n"
             "Agradecemos o seu interesse!\n"
             "Atenciosamente,\nEquipe de Recrutamento"
         )
@@ -40,9 +40,9 @@ def _enviar_emails_candidatura(request, inscricao):
         assunto_recrutador = f"Nova candidatura para '{vaga.titulo}': {candidato.nome}"
         mensagem_recrutador = (
             f"Uma nova candidatura foi recebida de '{candidato.nome}' para a vaga '{vaga.titulo}'.\n\n"
-            f"Para ver os detalhes da inscrição, aceda ao link:\n{link_inscricao}"
+            f"Para ver os detalhes da inscrição, acesse o link:\n{link_inscricao}"
         )
-        email_do_recrutador = ['sutterdorns@gmail.com'] # Lembre-se de alterar se necessário
+        email_do_recrutador = ['soniagsk278@gmail.com'] # Lembre-se de alterar se necessário
         send_mail(
             assunto_recrutador,
             mensagem_recrutador,
