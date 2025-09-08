@@ -105,43 +105,36 @@ def candidatar(request, vaga_id):
         
         if form.is_valid():
             email_candidato = form.cleaned_data['email']
-
-            # 1. Tenta encontrar um candidato existente com este e-mail
-            candidato_existente = Candidato.objects.filter(email=email_candidato).first()
             
-            # 2. Se o candidato existir, verifica as inscrições dele
-            if candidato_existente:
-                # Procura por uma inscrição incompleta para este candidato.
+            # ✅ LÓGICA CORRIGIDA: Usa get_or_create para ser atômico
+            candidato, created = Candidato.objects.get_or_create(
+                email=email_candidato,
+                defaults=form.cleaned_data
+            )
+            
+            # O sistema agora sabe se o candidato é novo ou existente
+            if created:
+                # Se for um novo candidato, cria uma nova inscrição
+                Inscricao.objects.create(
+                    vaga=vaga, candidato=candidato, status='incompleto'
+                )
+            else:
+                # Se o candidato já existia, verifica se ele já tem uma inscrição incompleta
                 inscricao_incompleta = Inscricao.objects.filter(
-                    candidato=candidato_existente, status='incompleto'
+                    candidato=candidato, status='incompleto'
                 ).first()
                 
-                if inscricao_incompleta:
-                    # Cenário: Candidato com Inscrição Incompleta.
-                    # Reaproveita a inscrição, atualiza a vaga se for diferente
-                    inscricao_incompleta.vaga = vaga
-                    inscricao_incompleta.save()
-                    return redirect('realizar_teste', candidato_id=candidato_existente.id)
-                else:
-                    # Cenário: Candidato já com uma ou mais candidaturas completas.
-                    # Cria uma nova inscrição para a nova vaga.
-                    inscricao = Inscricao.objects.create(
-                        vaga=vaga, candidato=candidato_existente, status='incompleto'
-                    )
-                    return redirect('realizar_teste', candidato_id=candidato_existente.id)
-            
-            # 3. Se o candidato não existir, cria um novo perfil e a primeira inscrição
-            else:
-                try:
-                    novo_candidato = Candidato.objects.create(**form.cleaned_data)
+                if not inscricao_incompleta:
+                    # Se não tiver, cria uma nova inscrição para a vaga atual
                     Inscricao.objects.create(
-                        vaga=vaga, candidato=novo_candidato, status='incompleto'
+                        vaga=vaga, candidato=candidato, status='incompleto'
                     )
-                    return redirect('realizar_teste', candidato_id=novo_candidato.id)
-                except IntegrityError:
-                    # Este bloco é um "plano B" caso a unicidade falhe
-                    form.add_error('email', 'Este e-mail já está em uso por outro processo. Por favor, entre em contato se precisar de ajuda.')
-                    return render(request, 'vagas/formulario_candidatura.html', {'vaga': vaga, 'form': form})
+            
+            return redirect('realizar_teste', candidato_id=candidato.id)
+        
+        # Se o formulário não for válido, ele renderiza a página com os erros
+        else:
+            return render(request, 'vagas/formulario_candidatura.html', {'vaga': vaga, 'form': form})
     
     else:
         form = CandidaturaForm()
