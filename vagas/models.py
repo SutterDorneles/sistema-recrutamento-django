@@ -84,6 +84,8 @@ class Candidato(models.Model):
     perfil_comportamental = models.CharField(max_length=50, blank=True, null=True, verbose_name="Perfil Comportamental")
     contratado = models.BooleanField(default=False, verbose_name="Já foi contratado?")
     def __str__(self): return self.nome
+    notas_internas = models.TextField(blank=True, null=True, verbose_name="Notas Internas do Recrutador")
+    
     
     # --- FUNÇÃO RESTAURADA ---
     def get_whatsapp_url(self):
@@ -228,7 +230,6 @@ class Inscricao(models.Model):
     candidato = models.ForeignKey(Candidato, on_delete=models.CASCADE)
     data_inscricao = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='incompleto', verbose_name="Status da Candidatura")
-    notas_internas = models.TextField(blank=True, null=True, verbose_name="Notas Internas do Recrutador")
     
     # --- Correção do plural no menu lateral ---
     class Meta:

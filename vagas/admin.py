@@ -392,6 +392,9 @@ class CandidatoAdmin(admin.ModelAdmin):
         ('Perfil Profissional e Pessoal', {'classes': ('collapse',), 'fields': ('preferencia_cargo', 'preferencia_turno', 'melhor_trabalho', 'pontos_fortes', 'objetivo_curto_prazo', 'objetivo_longo_prazo', 'lazer', 'habitos', 'curriculo')}),
         # Esta secção é agora preenchida pelo nosso template
         ('Resultado do Teste de Perfil', {'fields': ()}),
+        ('Análise do Recrutador', {
+            'fields': ('notas_internas',)
+        }),
     )    
         
     readonly_fields = ('perfil_comportamental', 'total_i', 'total_c', 'total_a', 'total_o', 'contratado')
