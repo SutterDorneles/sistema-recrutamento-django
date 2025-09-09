@@ -151,21 +151,29 @@ class Funcionario(models.Model):
     )
     
     def __str__(self): return self.perfil_candidato.nome
+    
+    # ✅ NOVO: MÉTODO __init__ PARA GUARDAR O ESTADO ANTERIOR
+    # Este método especial guarda o valor antigo da data de férias
+    # para sabermos quando ela foi realmente alterada.
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__original_inicio_gozo_ferias = self.data_inicio_gozo_ferias    
 
-    # --- ATUALIZAÇÃO DA LÓGICA DE COR ---
+    # ✅ ATUALIZADO: LÓGICA DE COR COM VERIFICAÇÃO INTELIGENTE
     def get_row_class(self):
-        hoje = timezone.now().date()
+        hoje = date.today()
 
-        # Condição de experiência continua a mesma
         if self.data_fim_experiencia and hoje <= self.data_fim_experiencia:
             return "row-experiencia"
 
-        # --- NOVA LÓGICA DE FÉRIAS VENCIDAS ---
-        # Fica vermelho SE:
-        # 1. A data de direito a férias já passou
-        # 2. E AINDA NÃO foi registrada uma data de início do gozo de férias
-        if self.data_direito_ferias and hoje > self.data_direito_ferias and not self.data_inicio_gozo_ferias:
-            return "row-ferias-vencidas"
+        if self.data_direito_ferias and hoje > self.data_direito_ferias:
+            # Calcula o início do período que deu direito às férias atuais
+            inicio_periodo_aquisitivo = self.data_direito_ferias - timedelta(days=365)
+
+            # Fica vermelho SE não houver férias registradas OU se as últimas férias
+            # registradas forem de um período ANTERIOR ao atual.
+            if not self.data_inicio_gozo_ferias or self.data_inicio_gozo_ferias < inicio_periodo_aquisitivo:
+                return "row-ferias-vencidas"
 
         return ""
     
@@ -183,8 +191,9 @@ class Funcionario(models.Model):
     tempo_de_servico.short_description = "Tempo de Serviço"
     # ----------------------------------------------------
     
+    # ✅ ATUALIZADO: MÉTODO save COM RECALCULO AUTOMÁTICO DE FÉRIAS
     def save(self, *args, **kwargs):
-        # --- LÓGICA DO CONTRATO DE EXPERIÊNCIA ---
+        # Lógica do contrato de experiência (sem alterações)
         if self.tipo_experiencia and self.data_admissao:
             if self.tipo_experiencia == self.CONTRATO_30_60:
                 self.data_fim_experiencia = self.data_admissao + timedelta(days=59)
@@ -193,12 +202,26 @@ class Funcionario(models.Model):
         else:
             self.data_fim_experiencia = None
 
-        # --- LÓGICA DO DIREITO A FÉRIAS (da sua função antiga) ---
+        # --- NOVA LÓGICA DE CÁLCULO DE FÉRIAS ---
         if self.data_admissao:
-            self.data_direito_ferias = self.data_admissao + timedelta(days=365) # Ou relativedelta(years=1) se preferir
-        
-        # Chama o método save original para salvar tudo no banco
-        super().save(*args, **kwargs)
+            # 1. Se a data de direito a férias ainda não existe, calcula a primeira.
+            if not self.data_direito_ferias:
+                self.data_direito_ferias = self.data_admissao + timedelta(days=365)
+            
+            # 2. Se a data de início de gozo FOI ALTERADA pelo usuário no admin
+            if self.data_inicio_gozo_ferias and self.data_inicio_gozo_ferias != self.__original_inicio_gozo_ferias:
+                # Calcula qual era o período de direito atual
+                inicio_periodo_aquisitivo = self.data_direito_ferias - timedelta(days=365)
+                
+                # Se a data preenchida for válida para o período atual...
+                if self.data_inicio_gozo_ferias >= inicio_periodo_aquisitivo:
+                    # ...avança a data do direito a férias em mais 1 ano.
+                    self.data_direito_ferias += timedelta(days=365)
+
+        super().save(*args, **kwargs) # Salva tudo no banco de dados
+
+        # Atualiza o valor "original" para a próxima vez que o objeto for salvo
+        self.__original_inicio_gozo_ferias = self.data_inicio_gozo_ferias
 
     class Meta: verbose_name = "Funcionário"; verbose_name_plural = "Funcionários (Todos)"
 
