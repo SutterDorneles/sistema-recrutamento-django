@@ -5,7 +5,7 @@ from django.db import models
 # Importamos os novos modelos
 from .models import (
     Vaga, Candidato, Inscricao, Pergunta, RespostaCandidato, Empresa, Funcionario,
-    FuncionarioAtivo, FuncionarioDemitido, FuncionarioComObservacao, Cargo, HistoricoFuncionario, PerfilGerente
+    FuncionarioAtivo, FuncionarioDemitido, FuncionarioComObservacao, Cargo, HistoricoFuncionario, PerfilGerente, DocumentoFuncionario
 )
 from .forms import ContratacaoForm, AgendamentoEntrevistaForm
 import csv
@@ -561,12 +561,20 @@ class EmpresaAdmin(admin.ModelAdmin):
     list_display = ('nome', 'ordem')
     list_editable = ('ordem',)
     search_fields = ('nome',)
+    
+class DocumentoFuncionarioInline(admin.TabularInline):
+    model = DocumentoFuncionario
+    fields = ('titulo', 'tipo_documento', 'arquivo')
+    extra = 1  # Mostra 1 campo extra para upload por padrão
+    verbose_name = "Documento"
+    verbose_name_plural = "Documentos do Funcionário"    
 
 # --- FORMULÁRIO PERSONALIZADO PARA ADICIONAR FUNCIONÁRIOS MANUALMENTE ---
 class FuncionarioAdminForm(forms.ModelForm):
     nome = forms.CharField(label="Nome Completo", max_length=100, required=True)
     email = forms.EmailField(label="Email", required=False)
     cpf = forms.CharField(label="CPF", max_length=14, required=True)
+    inlines = [DocumentoFuncionarioInline]
 
     class Meta:
         model = Funcionario
@@ -649,7 +657,7 @@ class FuncionarioAdmin(admin.ModelAdmin):
     search_fields = ('perfil_candidato__nome', 'perfil_candidato__email', 'cargo')
     list_editable = ('status',)
     readonly_fields = [
-        'tempo_de_servico','data_fim_experiencia','data_direito_ferias', 'mostrar_historico'
+        'tempo_de_servico','data_fim_experiencia','data_direito_ferias', 'mostrar_historico','mostrar_documentos',
     ]    
 
     change_form_template = 'admin/vagas/funcionario/change_form.html'
@@ -710,7 +718,43 @@ class FuncionarioAdmin(admin.ModelAdmin):
             
         return format_html(html)
 
-    mostrar_historico.short_description = ""    
+    mostrar_historico.short_description = ""  
+    
+    # ✅ ADICIONE ESTA NOVA FUNÇÃO COMPLETA, IGUAL A DO HISTÓRICO
+    def mostrar_documentos(self, obj):
+        if not obj.pk:
+            return "Salve o funcionário primeiro para adicionar documentos."
+
+        # Link para adicionar um novo documento, já com o funcionário selecionado
+        add_url = reverse('myadmin:vagas_documentofuncionario_add') + f'?funcionario={obj.pk}'
+        
+        html = f'<a href="{add_url}" class="button">Adicionar Novo Documento</a>'
+        html += '<ul style="margin-top: 15px;">'
+        
+        # Pega todos os documentos do funcionário
+        documentos = obj.documentos.all()
+        
+        if not documentos:
+            html += "<li>Nenhum documento enviado.</li>"
+        
+        for doc in documentos:
+            # Link para o arquivo
+            file_url = doc.arquivo.url
+            # Link para editar o registro do documento (o título, tipo, etc)
+            change_url = reverse('myadmin:vagas_documentofuncionario_change', args=[doc.pk])
+            
+            html += (
+                f'<li>'
+                f'<a href="{file_url}" target="_blank">{doc.titulo} ({doc.get_tipo_documento_display()})</a>'
+                f' - Adicionado em: {doc.data_upload.strftime("%d/%m/%Y")}' # Adicionamos a data formatada aqui                
+                f' - <a href="{change_url}">Editar</a>'
+                f'</li>'
+            )
+            
+        html += '</ul>'
+        return format_html(html)
+
+    mostrar_documentos.short_description = ""      
 
     # --- LÓGICA RESTAURADA ---
     def get_form(self, request, obj=None, **kwargs):
@@ -743,7 +787,11 @@ class FuncionarioAdmin(admin.ModelAdmin):
                 # --- ADICIONE ESTA SEÇÃO INTEIRA AQUI NO FINAL ---
                 ('Histórico do Funcionário', {
                     'fields': ('mostrar_historico',)
-                }),         
+                }),
+                # ✅ VAMOS ADICIONAR NOSSA NOVA ABA VAZIA AQUI
+                ('Documentos', {
+                    'fields': ('mostrar_documentos',)
+                }),                         
             )
 
     def get_readonly_fields(self, request, obj=None):
@@ -751,7 +799,7 @@ class FuncionarioAdmin(admin.ModelAdmin):
             return [
                 'get_nome', 'get_email', 'get_cpf', 'get_contato', 'get_idade', 'get_sexo',
                 'get_estado_civil', 'get_endereco_completo',
-                'tempo_de_servico', 'mostrar_historico',
+                'tempo_de_servico', 'mostrar_historico', 'mostrar_documentos'
             ]
         return ()
     
@@ -874,7 +922,28 @@ class PerfilGerenteInline(admin.StackedInline):
 
 # 2. Crie sua própria classe UserAdmin que usa o inline
 class UserAdmin(BaseUserAdmin):
-    inlines = (PerfilGerenteInline,)    
+    inlines = (PerfilGerenteInline,) 
+    
+# ✅ CRIE OU SUBSTITUA A CLASSE 'DocumentoFuncionarioAdmin' POR ESTA
+class DocumentoFuncionarioAdmin(admin.ModelAdmin):
+    list_display = ('titulo', 'funcionario', 'tipo_documento', 'data_upload')
+    search_fields = ('titulo', 'funcionario__perfil_candidato__nome')
+
+    # Este método é chamado pelo Django logo após um novo objeto ser salvo
+    def response_add(self, request, obj, post_url_continue=None):
+        # 'obj' é a instância do DocumentoFuncionario que acabou de ser criada
+        if obj.funcionario:
+            # Se o documento está associado a um funcionário,
+            # redirecionamos para a página de edição desse funcionário.
+            redirect_url = reverse('myadmin:vagas_funcionario_change', args=[obj.funcionario.pk])
+            
+            # Adicionamos uma mensagem de sucesso
+            self.message_user(request, f"O documento '{obj.titulo}' foi adicionado com sucesso.")
+            
+            return HttpResponseRedirect(redirect_url)
+        
+        # Se, por algum motivo, não houver funcionário, usamos o comportamento padrão.
+        return super().response_add(request, obj, post_url_continue)       
     
 admin_site.register(Vaga, VagaAdmin)
 admin_site.register(Candidato, CandidatoAdmin)
@@ -890,3 +959,4 @@ admin_site.register(Cargo, CargoAdmin)
 admin_site.register(User, UserAdmin)
 admin_site.register(Group, GroupAdmin)
 admin_site.register(HistoricoFuncionario, HistoricoFuncionarioAdmin)
+admin_site.register(DocumentoFuncionario, DocumentoFuncionarioAdmin)

@@ -333,3 +333,48 @@ class PerfilGerente(models.Model):
 
     def __str__(self):
         return f"Gerente {self.usuario.username} da loja {self.empresa.nome}"
+
+class DocumentoFuncionario(models.Model):
+    TIPO_CHOICES = [
+        ('FOLHA_PONTO', 'Folha Ponto'),
+        ('CONTRATO', 'Contrato de Trabalho'),
+        ('RG_CPF', 'Documento de Identidade (RG/CPF)'),
+        ('COMP_RESIDENCIA', 'Comprovante de Residência'),
+        ('ATESTADO_MEDICO', 'Atestado Médico'),
+        ('FERIAS', 'Recibo de Férias'),
+        ('DECIMO_TERCEIRO', 'Recibo de 13º Salário'),
+        ('OUTROS', 'Outros'),
+    ]
+
+    funcionario = models.ForeignKey(
+        Funcionario, 
+        on_delete=models.CASCADE, 
+        related_name='documentos',
+        verbose_name="Funcionário"
+    )
+    titulo = models.CharField(
+        max_length=100, 
+        verbose_name="Título ou Descrição do Documento"
+    )
+    tipo_documento = models.CharField(
+        max_length=20, 
+        choices=TIPO_CHOICES, 
+        default='OUTROS',
+        verbose_name="Tipo de Documento"
+    )
+    arquivo = models.FileField(
+        upload_to='documentos_funcionarios/%Y/%m/', 
+        verbose_name="Arquivo"
+    )
+    data_upload = models.DateTimeField(
+        auto_now_add=True, 
+        verbose_name="Data de Upload"
+    )
+
+    class Meta:
+        verbose_name = "Documento de Funcionário"
+        verbose_name_plural = "Documentos de Funcionários"
+        ordering = ['-data_upload']
+
+    def __str__(self):
+        return f"{self.titulo} - {self.funcionario.perfil_candidato.nome}"    
