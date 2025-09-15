@@ -283,7 +283,7 @@ admin_site = MyDashboardAdminSite(name='myadmin')
 class InscricaoInline(admin.TabularInline):
     model = Inscricao
     extra = 0
-    fields = ('candidato', 'status', 'notas_internas', 'data_inscricao')
+    fields = ('candidato', 'status', 'data_inscricao')
     readonly_fields = ('candidato', 'data_inscricao')
     can_delete = False
     formfield_overrides = {
@@ -371,15 +371,24 @@ class CandidatoAdmin(admin.ModelAdmin):
                 return qs
             return qs.filter(contratado=False)
 
-        # --- Lógica para Gerentes (continua a mesma) ---
+        # ✅ A MUDANÇA É AQUI, NA LÓGICA PARA GERENTES
         if request.user.groups.filter(name='Gerentes').exists():
             try:
                 empresa_gerente = request.user.perfil_gerente.empresa
+                
+                # Condição 1: Candidatos aprovados para a casa do gerente
+                condicao_da_casa = Q(inscricao__vaga__empresa=empresa_gerente)
+                
+                # Condição 2: Candidatos aprovados para QUALQUER vaga de Freelancer
+                condicao_freelancer = Q(inscricao__vaga__tipo_cargo='Freelancer')
+
+                # Aplicamos o filtro: (Condição 1 OU Condição 2) E status aprovado E não contratado
                 return qs.filter(
+                    condicao_da_casa | condicao_freelancer,
                     inscricao__status='aprovado',
-                    inscricao__vaga__empresa=empresa_gerente,
                     contratado=False
                 ).distinct()
+
             except PerfilGerente.DoesNotExist:
                 return qs.none()
         
@@ -676,7 +685,7 @@ class FuncionarioAdmin(admin.ModelAdmin):
         # --- Lógica para Gerentes (continua a mesma) ---
         if request.user.groups.filter(name='Gerentes').exists():
             try:
-                return qs.filter(empresa=request.user.perfil_gerente.empresa)
+                return qs.filter(empresa=request.user.perfil_gerente.empresa, status='ativo')
             except PerfilGerente.DoesNotExist:
                 return qs.none()
         
