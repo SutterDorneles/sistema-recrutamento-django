@@ -42,26 +42,15 @@ class CandidaturaForm(forms.ModelForm):
             'objetivo_longo_prazo': forms.Textarea(attrs={'rows': 2}),
         }
         
-    # ✅ SUBSTITUA SEU MÉTODO ANTIGO POR ESTE
     def clean_email(self):
         email = self.cleaned_data.get('email')
-        # ✅ DETETIVE 1
-        print(f"--- FORMS.PY: Verificando o e-mail: {email} ---")
         
         candidato_existente = Candidato.objects.filter(email__iexact=email).first()
         
-        if candidato_existente:
-            # ✅ DETETIVE 2
-            print(f"--- FORMS.PY: Encontrei o candidato '{candidato_existente.nome}'. Status contratado: {candidato_existente.contratado} ---")
-            if candidato_existente.contratado:
-                # ✅ DETETIVE 3
-                print("--- FORMS.PY: BLOQUEANDO! Candidato já contratado. ---")
-                raise ValidationError(
-                    'Este e-mail já está associado a um funcionário ativo. Por favor, utilize um e-mail diferente.'
-                )
-        else:
-            # ✅ DETETIVE 4
-            print("--- FORMS.PY: Não encontrei candidato com este e-mail. Permitindo. ---")
+        if candidato_existente and candidato_existente.contratado:
+            raise ValidationError(
+                'Este e-mail já está associado a um funcionário ativo. Por favor, utilize um e-mail diferente.'
+            )
         
         return email
 
