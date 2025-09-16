@@ -45,15 +45,23 @@ class CandidaturaForm(forms.ModelForm):
     # ✅ SUBSTITUA SEU MÉTODO ANTIGO POR ESTE
     def clean_email(self):
         email = self.cleaned_data.get('email')
+        # ✅ DETETIVE 1
+        print(f"--- FORMS.PY: Verificando o e-mail: {email} ---")
         
-        # Usamos 'iexact' para ignorar se o email foi digitado com letras maiúsculas/minúsculas
         candidato_existente = Candidato.objects.filter(email__iexact=email).first()
         
-        # A única regra aqui é: se o e-mail já pertence a um funcionário contratado, bloqueamos.
-        if candidato_existente and candidato_existente.contratado:
-            raise ValidationError(
-                'Este e-mail já está associado a um funcionário ativo. Por favor, utilize um e-mail diferente.'
-            )
+        if candidato_existente:
+            # ✅ DETETIVE 2
+            print(f"--- FORMS.PY: Encontrei o candidato '{candidato_existente.nome}'. Status contratado: {candidato_existente.contratado} ---")
+            if candidato_existente.contratado:
+                # ✅ DETETIVE 3
+                print("--- FORMS.PY: BLOQUEANDO! Candidato já contratado. ---")
+                raise ValidationError(
+                    'Este e-mail já está associado a um funcionário ativo. Por favor, utilize um e-mail diferente.'
+                )
+        else:
+            # ✅ DETETIVE 4
+            print("--- FORMS.PY: Não encontrei candidato com este e-mail. Permitindo. ---")
         
         return email
 

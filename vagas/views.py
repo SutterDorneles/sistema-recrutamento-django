@@ -105,6 +105,9 @@ def candidatar(request, vaga_id):
         form = CandidaturaForm(request.POST, request.FILES)
         
         if form.is_valid():
+            # ✅ DETETIVE 5
+            print(f"--- VIEWS.PY: Formulário VÁLIDO! Dados recebidos: {form.cleaned_data} ---")            
+            
             email_candidato = form.cleaned_data['email']
             
             candidato, created = Candidato.objects.get_or_create(
