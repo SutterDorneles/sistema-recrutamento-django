@@ -42,26 +42,19 @@ class CandidaturaForm(forms.ModelForm):
             'objetivo_longo_prazo': forms.Textarea(attrs={'rows': 2}),
         }
         
-    # ✅ Este é o código mais importante. Ele verifica a validação no formulário.
+    # ✅ SUBSTITUA SEU MÉTODO ANTIGO POR ESTE
     def clean_email(self):
         email = self.cleaned_data.get('email')
         
-        # Tenta encontrar um candidato com o email fornecido
-        candidato_existente = Candidato.objects.filter(email=email).first()
+        # Usamos 'iexact' para ignorar se o email foi digitado com letras maiúsculas/minúsculas
+        candidato_existente = Candidato.objects.filter(email__iexact=email).first()
         
-        if candidato_existente:
-            # Se o candidato já existe, verifica se a última inscrição dele é incompleta.
-            ultima_inscricao = Inscricao.objects.filter(candidato=candidato_existente).order_by('-data_inscricao').first()
-            
-            # Se a última inscrição existe e não é incompleta, levanta um erro.
-            if ultima_inscricao and ultima_inscricao.status != 'incompleto':
-                raise ValidationError(
-                    'Este e-mail já foi usado para uma candidatura completa. '
-                    'Para se candidatar a outra vaga, por favor, use um e-mail diferente ou entre em contato para ajuda.'
-                )
-            # Se a inscrição for incompleta ou não existir, o formulário passa.
-            # A view irá lidar com a lógica de reaproveitar o perfil do candidato.
-            
+        # A única regra aqui é: se o e-mail já pertence a um funcionário contratado, bloqueamos.
+        if candidato_existente and candidato_existente.contratado:
+            raise ValidationError(
+                'Este e-mail já está associado a um funcionário ativo. Por favor, utilize um e-mail diferente.'
+            )
+        
         return email
 
 class ContratacaoForm(forms.Form):

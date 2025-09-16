@@ -10,6 +10,7 @@ from django.conf import settings
 from django.db.models import Q, Count
 from django.urls import reverse
 from django.db import IntegrityError
+from django.contrib import messages
 
 def _enviar_emails_candidatura(request, inscricao):
     """Função auxiliar para enviar os e-mails após a conclusão do teste."""
@@ -106,34 +107,41 @@ def candidatar(request, vaga_id):
         if form.is_valid():
             email_candidato = form.cleaned_data['email']
             
-            # ✅ LÓGICA CORRIGIDA: Usa get_or_create para ser atômico
             candidato, created = Candidato.objects.get_or_create(
-                email=email_candidato,
+                email__iexact=email_candidato,
                 defaults=form.cleaned_data
             )
+
+            inscricao_existente = Inscricao.objects.filter(
+                candidato=candidato, 
+                vaga=vaga
+            ).exclude(
+                Q(status='rejeitado') | Q(status='incompleto')
+            ).exists()
+
+            if inscricao_existente:
+                messages.error(request, 'Você já possui uma candidatura em andamento para esta vaga.')
+                return render(request, 'vagas/formulario_candidatura.html', {'vaga': vaga, 'form': form})
+
+            inscricao, created_inscricao = Inscricao.objects.get_or_create(
+                candidato=candidato,
+                vaga=vaga,
+                defaults={'status': 'incompleto'}
+            )
             
-            # O sistema agora sabe se o candidato é novo ou existente
-            if created:
-                # Se for um novo candidato, cria uma nova inscrição
-                Inscricao.objects.create(
-                    vaga=vaga, candidato=candidato, status='incompleto'
-                )
-            else:
-                # Se o candidato já existia, verifica se ele já tem uma inscrição incompleta
-                inscricao_incompleta = Inscricao.objects.filter(
-                    candidato=candidato, status='incompleto'
-                ).first()
-                
-                if not inscricao_incompleta:
-                    # Se não tiver, cria uma nova inscrição para a vaga atual
-                    Inscricao.objects.create(
-                        vaga=vaga, candidato=candidato, status='incompleto'
-                    )
-            
+            if not created_inscricao:
+                inscricao.status = 'incompleto'
+                inscricao.save()
+
             return redirect('realizar_teste', candidato_id=candidato.id)
         
-        # Se o formulário não for válido, ele renderiza a página com os erros
         else:
+            if 'email' in form.errors:
+                # Pegamos a mensagem de erro do campo de e-mail...
+                error_msg = form.errors['email'][0]
+                # ...e a adicionamos ao sistema de mensagens globais.
+                messages.error(request, error_msg)     
+                       
             return render(request, 'vagas/formulario_candidatura.html', {'vaga': vaga, 'form': form})
     
     else:

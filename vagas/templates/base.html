@@ -150,6 +150,42 @@
             font-size: 0.9em;
             color: #777;
         }
+    
+        /* ✅ ADICIONE ESTE NOVO BLOCO DE ESTILOS */
+        .messages-container {
+            padding: 0;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            list-style: none;
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            font-weight: 500;
+            border: 1px solid transparent;
+        }
+
+        /* Estilo para mensagens de erro */
+        .message.error {
+            background-color: #f8d7da; /* Fundo vermelho claro */
+            color: #721c24; /* Texto vermelho escuro */
+            border-color: #f5c6cb;
+        }
+
+        /* Estilo para mensagens de sucesso (útil para o futuro) */
+        .message.success {
+            background-color: #d4edda; /* Fundo verde claro */
+            color: #155724; /* Texto verde escuro */
+            border-color: #c3e6cb;
+        }
+
+        /* Estilo para mensagens de aviso (útil para o futuro) */
+        .message.warning {
+            background-color: #fff3cd; /* Fundo amarelo claro */
+            color: #856404; /* Texto amarelo escuro */
+            border-color: #ffeeba;
+        }        
         
     </style>
 </head>
@@ -163,6 +199,19 @@
                 <h2>Conectando pessoas e oportunidades</h2>
             </div>
         </header>
+
+        {# ✅ ADICIONE TODO ESTE BLOCO DE CÓDIGO AQUI #}
+        {% if messages %}
+            <div class="messages-container">
+                {# Loop que percorre todas as mensagens enviadas pela view #}
+                {% for message in messages %}
+                    {# A tag da mensagem (ex: 'error', 'success') é usada como uma classe CSS #}
+                    <div class="message {{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}        
         
         <!-- O conteúdo específico de cada página será inserido aqui -->
         {% block content %}
