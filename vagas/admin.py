@@ -185,6 +185,7 @@ class MyDashboardAdminSite(admin.AdminSite):
             'Instrutor(a) de Treinamento Funcional' : 'Instrutor(a) de Treinamento Funcional',
             'instrutor_funcional': 'Instrutor(a) de Treinamento Funcional',
             'estagiario': 'Estagiário',
+            'administrativo':"Administrativo"
         }        
         
         if request.method == 'POST':
