@@ -242,6 +242,24 @@ class FuncionarioComObservacao(Funcionario):
         proxy = True
         verbose_name = "Funcionário com Observação"
         verbose_name_plural = "Funcionários com Observação"
+        
+# --- NOVO MODELO PARA O CONTROLO DE UNIFORMES ---
+class EntregaUniforme(models.Model):
+    funcionario = models.ForeignKey(Funcionario, on_delete=models.CASCADE, related_name="uniformes_entregues")
+    item = models.CharField(max_length=255, verbose_name="Item do Uniforme")
+    quantidade = models.PositiveIntegerField(default=1, verbose_name="Quantidade")
+    data_entrega = models.DateField(default=timezone.now, verbose_name="Data de Entrega")
+    data_devolucao = models.DateField(null=True, blank=True, verbose_name="Data de Devolução")
+    termo_compromisso = models.FileField(upload_to='termos_uniforme/', blank=True, null=True, verbose_name="Termo de Compromisso Assinado")
+    observacoes = models.TextField(blank=True, null=True, verbose_name="Observações")
+
+    def __str__(self):
+        return f"{self.quantidade}x {self.item} para {self.funcionario.perfil_candidato.nome}"
+
+    class Meta:
+        verbose_name = "Entrega de Uniforme"
+        verbose_name_plural = "Entregas de Uniforme"
+        ordering = ['-data_entrega']            
 
 class Inscricao(models.Model):
     STATUS_CHOICES = [

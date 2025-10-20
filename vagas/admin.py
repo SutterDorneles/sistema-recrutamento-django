@@ -5,7 +5,7 @@ from django.db import models
 # Importamos os novos modelos
 from .models import (
     Vaga, Candidato, Inscricao, Pergunta, RespostaCandidato, Empresa, Funcionario,
-    FuncionarioAtivo, FuncionarioDemitido, FuncionarioComObservacao, Cargo, HistoricoFuncionario, PerfilGerente, DocumentoFuncionario
+    FuncionarioAtivo, FuncionarioDemitido, FuncionarioComObservacao, Cargo, HistoricoFuncionario, PerfilGerente, DocumentoFuncionario, EntregaUniforme
 )
 from .forms import ContratacaoForm, AgendamentoEntrevistaForm
 import csv
@@ -657,6 +657,15 @@ class HistoricoFuncionarioAdmin(admin.ModelAdmin):
         if not obj.pk: # Se for um novo objeto
             obj.criado_por = request.user
         super().save_model(request, obj, form, change)
+        
+# ✅ --- NOVA CLASSE PARA GERIR AS ENTREGAS DE UNIFORME NA PÁGINA DO FUNCIONÁRIO ---
+class EntregaUniformeInline(admin.TabularInline):
+    model = EntregaUniforme
+    extra = 1  # Mostra 1 formulário extra para adicionar uma nova entrega
+    fields = ('item', 'quantidade', 'data_entrega', 'data_devolucao', 'termo_compromisso', 'observacoes')
+    formfield_overrides = {
+        models.TextField: {'widget': forms.Textarea(attrs={'rows': 2, 'cols': 40})},
+    }        
 
 # --- GESTÃO DE FUNCIONÁRIOS ATUALIZADA ---
 class FuncionarioAdmin(admin.ModelAdmin):
@@ -671,6 +680,7 @@ class FuncionarioAdmin(admin.ModelAdmin):
     ]    
 
     change_form_template = 'admin/vagas/funcionario/change_form.html'
+    inlines = [EntregaUniformeInline] # ✅ Adiciona a tabela de uniformes à página do funcionário
     
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -970,3 +980,4 @@ admin_site.register(User, UserAdmin)
 admin_site.register(Group, GroupAdmin)
 admin_site.register(HistoricoFuncionario, HistoricoFuncionarioAdmin)
 admin_site.register(DocumentoFuncionario, DocumentoFuncionarioAdmin)
+admin_site.register(EntregaUniforme) # ✅ Regista o novo modelo
