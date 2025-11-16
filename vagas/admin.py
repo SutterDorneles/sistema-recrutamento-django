@@ -5,7 +5,7 @@ from django.db import models
 # Importamos os novos modelos
 from .models import (
     Vaga, Candidato, Inscricao, Pergunta, RespostaCandidato, Empresa, Funcionario,
-    FuncionarioAtivo, FuncionarioDemitido, FuncionarioComObservacao, Cargo, HistoricoFuncionario, PerfilGerente, DocumentoFuncionario, EntregaUniforme
+    FuncionarioAtivo, FuncionarioDemitido, FuncionarioComObservacao, Cargo, HistoricoFuncionario, PerfilGerente, DocumentoFuncionario, EntregaUniforme, ManualEmpresa
 )
 from .forms import ContratacaoForm, AgendamentoEntrevistaForm
 import csv
@@ -963,7 +963,12 @@ class DocumentoFuncionarioAdmin(admin.ModelAdmin):
             return HttpResponseRedirect(redirect_url)
         
         # Se, por algum motivo, não houver funcionário, usamos o comportamento padrão.
-        return super().response_add(request, obj, post_url_continue)       
+        return super().response_add(request, obj, post_url_continue)      
+    
+class ManualEmpresaAdmin(admin.ModelAdmin):
+    list_display = ('titulo', 'empresa', 'categoria', 'data_atualizacao')
+    list_filter = ('empresa', 'categoria')
+    search_fields = ('titulo',)     
     
 admin_site.register(Vaga, VagaAdmin)
 admin_site.register(Candidato, CandidatoAdmin)
@@ -981,3 +986,4 @@ admin_site.register(Group, GroupAdmin)
 admin_site.register(HistoricoFuncionario, HistoricoFuncionarioAdmin)
 admin_site.register(DocumentoFuncionario, DocumentoFuncionarioAdmin)
 admin_site.register(EntregaUniforme) # ✅ Regista o novo modelo
+admin_site.register(ManualEmpresa, ManualEmpresaAdmin)

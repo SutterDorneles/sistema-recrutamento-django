@@ -396,3 +396,53 @@ class DocumentoFuncionario(models.Model):
 
     def __str__(self):
         return f"{self.titulo} - {self.funcionario.perfil_candidato.nome}"    
+    
+class ManualEmpresa(models.Model):
+    CATEGORIA_CHOICES = [
+        ('OPERACIONAL', 'Operacional (Cozinha, Atendimento)'),
+        ('RH', 'Recursos Humanos (Conduta, Uniforme)'),
+        ('ADM', 'Administrativo / Financeiro'),
+        ('OUTROS', 'Outros'),
+    ]
+
+    titulo = models.CharField(
+        max_length=200, 
+        verbose_name="Título do Manual"
+    )
+    
+    # Esta é a parte chave para as permissões:
+    empresa = models.ForeignKey(
+        Empresa, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        verbose_name="Específico da Empresa",
+        help_text="Se deixar em branco, este manual será visível para TODAS as empresas."
+    )
+    
+    categoria = models.CharField(
+        max_length=50, 
+        choices=CATEGORIA_CHOICES, 
+        default='OPERACIONAL',
+        verbose_name="Categoria"
+    )
+    
+    arquivo = models.FileField(
+        upload_to='manuais_empresa/', 
+        verbose_name="Arquivo (PDF, Word, etc.)"
+    )
+    
+    data_atualizacao = models.DateTimeField(
+        auto_now=True, 
+        verbose_name="Última Atualização"
+    )
+
+    class Meta:
+        verbose_name = "Manual da Empresa"
+        verbose_name_plural = "Manuais da Empresa"
+        ordering = ['-data_atualizacao']
+
+    def __str__(self):
+        if self.empresa:
+            return f"{self.titulo} ({self.empresa.nome})"
+        return f"{self.titulo} (Geral)"

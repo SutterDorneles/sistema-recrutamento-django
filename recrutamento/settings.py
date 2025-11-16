@@ -183,6 +183,7 @@ JAZZMIN_SETTINGS = {
         "vagas.funcionario": "fas fa-users",
         "vagas.pergunta": "fas fa-question-circle",
         "vagas.respostacandidato": "fas fa-poll-h",
+        "vagas.ManualEmpresa": "fas fa-book",        
     },
 }
 
