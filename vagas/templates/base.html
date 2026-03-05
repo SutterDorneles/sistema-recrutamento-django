@@ -4,223 +4,178 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Usando a fonte Inter do Google Fonts para um visual mais moderno -->
+    
+    <!-- ✅ RESOLUÇÃO DO WHATSAPP: Configuração do Card de Compartilhamento -->
+    <title>{% block title %}Trabalhe Conosco | RH ORI{% endblock %}</title>
+    <meta property="og:title" content="Trabalhe Conosco - RH ORI">
+    <meta property="og:description" content="Encontre sua próxima oportunidade profissional em nosso portal de vagas.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:image" content="https://www.rhori.com.br/static/vagas/images/logo.jpg"> <!-- Certifique-se que este link da logo funciona publicamente -->
+
+    <!-- Fontes Modernas -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- CORREÇÃO: Adicionado de volta o link para a biblioteca de ícones (Font Awesome) -->
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     
     <link rel="icon" href="{% static 'vagas/images/favicon.png' %}" type="image/png">
-    
-    <title>{% block title %}Sistema de Recrutamento{% endblock %}</title>
 
     <style>
-        /* Reset básico e definição da fonte */
         :root {
             --cor-primaria: #005A9C;
-            --cor-secundaria: #25D366;
-            --cor-fundo: #f4f7f6;
-            --cor-texto: #333;
-            --cor-cartao: #ffffff;
-            --sombra-suave: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --cor-primaria-light: #3b82f6;
+            --cor-fundo: #f8fafc;
+            --cor-texto-bold: #1e293b;
+            --cor-texto-corpo: #64748b;
+            --cor-branca: #ffffff;
+            --radius: 16px;
+            --sombra-premium: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
         }
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--cor-fundo);
-            color: var(--cor-texto);
+            color: var(--cor-texto-corpo);
             margin: 0;
-            padding: 20px;
+            padding: 0;
             line-height: 1.6;
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+        }
+
+        /* Container Principal com Estilo Card Premium */
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 40px;
+            background-color: var(--cor-branca);
+            border-radius: var(--radius);
+            box-shadow: var(--sombra-premium);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            flex-grow: 1;
+            width: 95%;
             box-sizing: border-box;
         }
 
-        /* Container principal */
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 30px;
-            background-color: var(--cor-cartao);
-            border-radius: 12px;
-            box-shadow: var(--sombra-suave);
-            flex-grow: 1;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        
-        /* --- ESTILOS DO CABEÇALHO ATUALIZADOS --- */
+        /* Header Modernizado */
         .site-header {
             display: flex;
             align-items: center;
-            gap: 20px;
-            margin-bottom: 30px;
+            gap: 24px;
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #f1f5f9;
         }
+
         .site-header img {
-            height: 70px;
-            flex-shrink: 0; /* Impede que a imagem encolha */
+            height: 80px;
+            border-radius: 12px;
+            transition: transform 0.3s ease;
         }
-        .site-header .header-text h1 {
+        
+        .site-header img:hover {
+            transform: scale(1.05);
+        }
+
+        .header-text h1 {
             margin: 0;
-            color: var(--cor-primaria);
-            font-size: 1.8em;
+            color: var(--cor-texto-bold);
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: -0.025em;
         }
-        .site-header .header-text h2 {
-            margin: 0;
+
+        .header-text h2 {
+            margin: 4px 0 0 0;
             font-weight: 500;
-            color: #555;
-            font-size: 1.1em;
+            color: var(--cor-texto-corpo);
+            font-size: 1.1rem;
         }
 
-        /* --- REGRA DE RESPONSIVIDADE PARA ECRÃS PEQUENOS --- */
-        @media (max-width: 600px) {
-            .site-header {
-                flex-direction: column; /* Empilha o logótipo e o texto */
-                text-align: center;     /* Centraliza o texto */
-            }
-            .site-header .header-text h1 {
-                font-size: 1.5em; /* Ajusta o tamanho da fonte para telemóveis */
-            }
-            .site-header .header-text h2 {
-                font-size: 1em;
-            }
-        }
-        /* --- FIM DA ATUALIZAÇÃO --- */
-
-        /* Títulos */
-        h1, h2, h3 {
-            color: var(--cor-primaria);
-            margin-top: 0;
-        }
-
-        /* Links */
-        a {
-            color: var(--cor-primaria);
-            text-decoration: none;
-            font-weight: 500;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-
-        /* Botões */
+        /* Estilo para Botões Modernos */
         .btn {
-            display: inline-block;
-            background-color: var(--cor-primaria);
-            color: white;
-            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--cor-primaria) 0%, #003d6b 100%);
+            color: white !important;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 90, 156, 0.2);
             border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            text-align: center;
-            font-weight: 500;
-            transition: background-color 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
+
         .btn:hover {
-            background-color: #004170;
-            text-decoration: none;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 90, 156, 0.3);
+            text-decoration: none !important;
         }
 
-        /* Formulários */
-        form p {
-            margin-bottom: 15px;
+        /* Mensagens de Alerta */
+        .message {
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
-        form label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-        }
-        form input, form select, form textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            box-sizing: border-box;
-        }
+        .message.error { background-color: #fef2f2; color: #991b1b; border: 1px solid #fee2e2; }
+        .message.success { background-color: #f0fdf4; color: #166534; border: 1px solid #dcfce7; }
 
-        /* Estilos para o Rodapé */
+        /* Rodapé */
         footer {
             text-align: center;
-            padding: 20px 0;
-            margin-top: auto;
-            font-size: 0.9em;
-            color: #777;
-        }
-    
-        /* ✅ ADICIONE ESTE NOVO BLOCO DE ESTILOS */
-        .messages-container {
-            padding: 0;
-            margin-bottom: 20px;
+            padding: 40px 0;
+            color: #94a3b8;
+            font-size: 0.9rem;
         }
 
-        .message {
-            list-style: none;
-            padding: 15px 20px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            font-weight: 500;
-            border: 1px solid transparent;
-        }
+        footer a { color: #64748b; font-weight: 600; }
 
-        /* Estilo para mensagens de erro */
-        .message.error {
-            background-color: #f8d7da; /* Fundo vermelho claro */
-            color: #721c24; /* Texto vermelho escuro */
-            border-color: #f5c6cb;
+        /* Responsividade */
+        @media (max-width: 600px) {
+            .container { padding: 24px; margin: 20px auto; }
+            .site-header { flex-direction: column; text-align: center; }
+            .header-text h1 { font-size: 1.5rem; }
         }
-
-        /* Estilo para mensagens de sucesso (útil para o futuro) */
-        .message.success {
-            background-color: #d4edda; /* Fundo verde claro */
-            color: #155724; /* Texto verde escuro */
-            border-color: #c3e6cb;
-        }
-
-        /* Estilo para mensagens de aviso (útil para o futuro) */
-        .message.warning {
-            background-color: #fff3cd; /* Fundo amarelo claro */
-            color: #856404; /* Texto amarelo escuro */
-            border-color: #ffeeba;
-        }        
-        
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- HTML do cabeçalho atualizado para usar as novas classes CSS -->
         <header class="site-header">
-            <img src="{% static 'vagas/images/logo.jpg' %}" alt="Logo da Empresa">
+            <img src="{% static 'vagas/images/logo.jpg' %}" alt="Logo RH ORI">
             <div class="header-text">
-                <h1>Plataforma de Gestão de Talentos</h1>
-                <h2>Conectando pessoas e oportunidades</h2>
+                <h1>RH<span style="color: var(--cor-primaria)">ORI</span></h1>
+                <h2>Conectando talentos a grandes oportunidades</h2>
             </div>
         </header>
 
-        {# ✅ ADICIONE TODO ESTE BLOCO DE CÓDIGO AQUI #}
         {% if messages %}
             <div class="messages-container">
-                {# Loop que percorre todas as mensagens enviadas pela view #}
                 {% for message in messages %}
-                    {# A tag da mensagem (ex: 'error', 'success') é usada como uma classe CSS #}
                     <div class="message {{ message.tags }}">
+                        <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %}"></i>
                         {{ message }}
                     </div>
                 {% endfor %}
             </div>
         {% endif %}        
         
-        <!-- O conteúdo específico de cada página será inserido aqui -->
         {% block content %}
         {% endblock %}
     </div>
 
-    <!-- Rodapé com o link para o admin -->
     <footer>
-        <p>&copy; {% now "Y" %} - Sistema de Recrutamento | <a href="{% url 'admin:index' %}">Acesso Restrito (admin) </a></p>
+        <p>&copy; {% now "Y" %} - RH ORI | <a href="{% url 'admin:index' %}"><i class="fas fa-lock"></i> Painel Administrativo</a></p>
     </footer>
 </body>
 </html>
