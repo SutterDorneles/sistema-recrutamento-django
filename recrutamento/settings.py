@@ -122,11 +122,15 @@ if not DEBUG:
     SECURE_HSTS_PRELOAD = True
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    
+# Permite que o Django aceite formulários grandes com muitos arquivos
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000 
+FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50MB    
 
 # --- CONFIGURAÇÕES DO DJANGO JAZZMIN (VERSÃO ESTÁVEL) ---
 JAZZMIN_SETTINGS = {
 
-    
+    "show_ui_builder": True,
     "site_title": "Painel RH Ori",
     "site_header": "RH Orientado",
     "welcome_sign": "Bem-vindo ao Painel de Gestão de RH",

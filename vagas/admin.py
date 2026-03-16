@@ -571,14 +571,12 @@ class EmpresaAdmin(admin.ModelAdmin):
     list_display = ('nome', 'ordem')
     list_editable = ('ordem',)
     search_fields = ('nome',)
-    
+
 class DocumentoFuncionarioInline(admin.TabularInline):
     model = DocumentoFuncionario
     fields = ('titulo', 'tipo_documento', 'arquivo')
-    extra = 1  # Mostra 1 campo extra para upload por padrão
-    verbose_name = "Documento"
-    verbose_name_plural = "Documentos do Funcionário"    
-
+    extra = 0
+    
 # --- FORMULÁRIO PERSONALIZADO PARA ADICIONAR FUNCIONÁRIOS MANUALMENTE ---
 class FuncionarioAdminForm(forms.ModelForm):
     nome = forms.CharField(label="Nome Completo", max_length=100, required=True)
@@ -588,7 +586,7 @@ class FuncionarioAdminForm(forms.ModelForm):
 
     class Meta:
         model = Funcionario
-        fields = ['nome', 'email', 'cpf', 'empresa', 'cargo', 'remuneracao', 'data_admissao', 'status', 'observacoes']
+        fields = ['nome', 'email', 'cpf', 'empresa', 'cargo', 'remuneracao', 'data_admissao', 'status', 'observacoes',]
         # --- ALTERAÇÃO AQUI ---
         # Força o uso do widget de calendário para a data de admissão
         widgets = {
@@ -661,7 +659,7 @@ class HistoricoFuncionarioAdmin(admin.ModelAdmin):
 # ✅ --- NOVA CLASSE PARA GERIR AS ENTREGAS DE UNIFORME NA PÁGINA DO FUNCIONÁRIO ---
 class EntregaUniformeInline(admin.TabularInline):
     model = EntregaUniforme
-    extra = 1  # Mostra 1 formulário extra para adicionar uma nova entrega
+    extra = 0  # Mostra 1 formulário extra para adicionar uma nova entrega
     fields = ('item', 'quantidade', 'data_entrega', 'data_devolucao', 'termo_compromisso', 'observacoes')
     formfield_overrides = {
         models.TextField: {'widget': forms.Textarea(attrs={'rows': 2, 'cols': 40})},
@@ -676,11 +674,40 @@ class FuncionarioAdmin(admin.ModelAdmin):
     search_fields = ('perfil_candidato__nome', 'perfil_candidato__email', 'cargo')
     list_editable = ('status',)
     readonly_fields = [
-        'tempo_de_servico','data_fim_experiencia','data_direito_ferias', 'mostrar_historico','mostrar_documentos',
+        'tempo_de_servico','data_fim_experiencia','data_direito_ferias', 'mostrar_historico',
     ]    
 
     change_form_template = 'admin/vagas/funcionario/change_form.html'
-    inlines = [EntregaUniformeInline] # ✅ Adiciona a tabela de uniformes à página do funcionário
+    inlines = [EntregaUniformeInline, DocumentoFuncionarioInline] 
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            # Note a barra no final de upload-documentos/
+            path('<int:object_id>/change/upload-documentos/', 
+                self.admin_site.admin_view(self.upload_documentos), 
+                name='upload_docs_func'),
+        ]
+        return custom_urls + urls
+    
+    def upload_documentos(self, request, object_id):
+        if request.method == 'POST':
+            arquivo = request.FILES.get('arquivo')
+            if arquivo:
+                from .models import DocumentoFuncionario
+                try:
+                    DocumentoFuncionario.objects.create(
+                        funcionario_id=object_id,
+                        arquivo=arquivo,
+                        titulo=arquivo.name,
+                        tipo_documento='OUTROS'
+                    )
+                    # Retornamos status 200 para o Dropzone ficar verde
+                    return JsonResponse({'status': 'success', 'message': 'Arquivo salvo'}, status=200)
+                except Exception as e:
+                    return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        
+        return JsonResponse({'status': 'error', 'message': 'Requisição inválida'}, status=400)
     
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -776,12 +803,10 @@ class FuncionarioAdmin(admin.ModelAdmin):
 
     mostrar_documentos.short_description = ""      
 
-    # --- LÓGICA RESTAURADA ---
     def get_form(self, request, obj=None, **kwargs):
-        if obj is None:
-            return FuncionarioAdminForm
+        kwargs['form'] = FuncionarioAdminForm
         return super().get_form(request, obj, **kwargs)
-
+    
     def get_fieldsets(self, request, obj=None):
         if obj is None: # Formulário de Adicionar
             return (
@@ -807,11 +832,7 @@ class FuncionarioAdmin(admin.ModelAdmin):
                 # --- ADICIONE ESTA SEÇÃO INTEIRA AQUI NO FINAL ---
                 ('Histórico do Funcionário', {
                     'fields': ('mostrar_historico',)
-                }),
-                # ✅ VAMOS ADICIONAR NOSSA NOVA ABA VAZIA AQUI
-                ('Documentos', {
-                    'fields': ('mostrar_documentos',)
-                }),                         
+                }),                
             )
 
     def get_readonly_fields(self, request, obj=None):

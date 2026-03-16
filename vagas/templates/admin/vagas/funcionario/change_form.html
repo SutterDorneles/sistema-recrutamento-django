@@ -1,28 +1,139 @@
 {% extends "admin/change_form.html" %}
 {% load static %}
 
+{% block extrahead %}
+    {{ block.super }}
+    <link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />
+    <style>
+        /* Quadrado de Upload */
+        .dropzone-container { 
+            margin: 20px 0; 
+            border: 2px dashed #007bff; 
+            border-radius: 10px; 
+            background: #f8f9fa; 
+            padding: 40px; 
+            text-align: center; 
+            cursor: pointer; 
+        }
+        .dropzone-container:hover { background: #e9ecef; }
+        
+        /* FEEDBACK VISUAL (Checks e Cores) */
+        .dz-preview.dz-success .dz-success-mark { color: #28a745 !important; opacity: 1 !important; }
+        .dz-preview.dz-error .dz-error-mark { color: #dc3545 !important; opacity: 1 !important; }
+        .dz-preview.dz-success { border: 2px solid #28a745; border-radius: 10px; background: #e6ffed !important; }
+
+        /* AJUSTE DA TABELA (Para parar de espremer) */
+        /* Força o container a não criar rolagem se possível */
+        .inline-group .tabular.inline-related fieldset.module {
+            overflow-x: auto !important;
+            width: 100% !important;
+        }
+
+        /* Força a tabela a se comportar */
+        .inline-group .tabular.inline-related table {
+            width: 100% !important;
+            table-layout: auto !important; /* Deixa o navegador calcular as larguras */
+        }
+
+        /* Ajusta os inputs dentro da tabela para não serem gigantes */
+        .inline-group .tabular.inline-related td input {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            min-width: 100px; /* Impede que fique minúsculo */
+        }
+
+        /* Ajusta especificamente a coluna do arquivo */
+        .inline-group .tabular.inline-related td.field-arquivo {
+            max-width: 200px;
+            word-wrap: break-word;
+        }
+
+        .col-12.col-lg-9 { flex: 0 0 100% !important; max-width: 100% !important; }
+        .col-12.col-lg-3 { flex: 0 0 100% !important; max-width: 100% !important; position: static !important; }
+
+        /* --- CSS DE ALINHAMENTO FORÇADO --- */
+
+        /* 1. Garante que a tabela não transborde */
+        .inline-group .tabular.inline-related {
+            display: block;
+            width: 100% !important;
+            overflow-x: hidden !important;
+        }
+
+        .inline-group .tabular.inline-related table {
+            table-layout: fixed !important;
+            width: 100% !important;
+            min-width: 100% !important;
+        }
+
+        /* 2. Distribuição rígida das colunas */
+        .inline-group .tabular.inline-related th.column-titulo, 
+        .inline-group .tabular.inline-related td.field-titulo { width: 30% !important; }
+
+        .inline-group .tabular.inline-related th.column-tipo_documento, 
+        .inline-group .tabular.inline-related td.field-tipo_documento { width: 20% !important; }
+
+        .inline-group .tabular.inline-related th.column-arquivo, 
+        .inline-group .tabular.inline-related td.field-arquivo { width: 40% !important; }
+
+        .inline-group .tabular.inline-related th.delete, 
+        .inline-group .tabular.inline-related td.delete { width: 10% !important; }
+
+        /* 3. Domando os inputs e selects (Onde mora o problema) */
+        /* Isso impede que o campo 'estufe' a coluna por dentro */
+        .inline-group .tabular.inline-related td input,
+        .inline-group .tabular.inline-related td select {
+            max-width: 100% !important;
+            min-width: 0 !important;   /* Mata a largura mínima do Jazzmin */
+            width: 100% !important;
+            display: block !important;
+        }
+
+        /* 4. Limpa o texto do arquivo que 'vaza' */
+        .inline-group .tabular.inline-related td.field-arquivo .readonly,
+        .inline-group .tabular.inline-related td.field-arquivo a {
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        /* 5. Remove margens que empurram os vizinhos */
+        .inline-group .tabular.inline-related td {
+            padding: 8px 4px !important;
+        }
+    </style>
+{% endblock %}
+
 {% block after_field_sets %}
     {{ block.super }}
 
+    <div id="dropzone-section" style="display: none;">
+        <fieldset class="module aligned">
+            <h2>Upload Rápido de Documentos</h2>
+            <div id="meu-dropzone" class="dropzone-container">
+                <div class="dz-message">
+                    <h3>Arraste os arquivos aqui ou clique para selecionar</h3>
+                    <p>Os arquivos aparecerão na lista abaixo após o upload.</p>
+                </div>
+            </div>
+        </fieldset>
+    </div>
+
     {% if chart_data %}
-    <!-- O nosso bloco de gráfico é renderizado aqui, inicialmente escondido -->
     <div id="custom-chart-block" style="display: none;">
         <fieldset class="module aligned">
             <h2>Análise do Perfil Comportamental</h2>
             <div class="form-row">
                 <div style="width: 100%; max-width: 800px; margin: 0 auto; padding-top: 15px;">
                     <h4>Perfil Predominante: <strong>{{ chart_data.perfil_principal|default:"Não calculado" }}</strong></h4>
-                    
                     <div style="margin-top: 15px; padding: 10px; background-color: #f7f7f9; border-radius: 4px;">
-                        <p><strong>Percentuais detalhados:</strong></p>
                         <ul style="list-style-type: none; padding-left: 0;">
-                            <li>- Águia (Idealizador): <strong>{{ chart_data.aguia }}%</strong></li>
-                            <li>- Gato (Comunicador): <strong>{{ chart_data.gato }}%</strong></li>
-                            <li>- Tubarão (Executor): <strong>{{ chart_data.tubarao }}%</strong></li>
-                            <li>- Lobo (Analista): <strong>{{ chart_data.lobo }}%</strong></li>
+                            <li>- Águia: <strong>{{ chart_data.aguia }}%</strong> | - Gato: <strong>{{ chart_data.gato }}%</strong></li>
+                            <li>- Tubarão: <strong>{{ chart_data.tubarao }}%</strong> | - Lobo: <strong>{{ chart_data.lobo }}%</strong></li>
                         </ul>
                     </div>
-
                     <div style="margin-top: 20px;">
                         <canvas id="radarChart" width="800" height="450"
                                 data-aguia="{{ chart_data.aguia|default:0 }}"
@@ -41,51 +152,93 @@
 {% block admin_change_form_document_ready %}
     {{ block.super }}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
+    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Script para mover o gráfico para a aba correta
-            const customChartBlock = document.getElementById('custom-chart-block');
-            let targetPanel = null;
+            const chartBlock = document.getElementById('custom-chart-block');
+            const dropzoneBlock = document.getElementById('dropzone-section');
             const tabLinks = document.querySelectorAll('.nav-tabs .nav-link');
 
+            // 1. RECUPERAR ABA ATIVA APÓS REFRESH
+            const activeTabHash = localStorage.getItem('activeTab');
+            if (activeTabHash) {
+                const tabToActivate = document.querySelector(`.nav-tabs a[href="${activeTabHash}"]`);
+                if (tabToActivate) {
+                    tabToActivate.click();
+                }
+                localStorage.removeItem('activeTab');
+            }
+
+            // Prevenção para o navegador não abrir arquivos soltos por acidente
+            window.addEventListener("dragover", e => e.preventDefault(), false);
+            window.addEventListener("drop", e => e.preventDefault(), false);
+
             tabLinks.forEach(link => {
-                if (link.textContent.trim() === 'Resultado do Teste de Perfil') {
-                    const targetId = link.getAttribute('href');
-                    if (targetId) {
-                        targetPanel = document.querySelector(targetId);
+                const text = link.textContent.trim();
+                const targetId = link.getAttribute('href');
+                if (!targetId) return;
+                const targetPanel = document.querySelector(targetId);
+
+                if (targetPanel) {
+                    // MOVER GRÁFICO
+                    if (text === 'Resultado do Teste de Perfil' && chartBlock) {
+                        targetPanel.appendChild(chartBlock);
+                        chartBlock.style.display = 'block';
+                    }
+                    
+                    // MOVER E CONFIGURAR DROPZONE
+                    if (text === 'Documentos de Funcionários' && dropzoneBlock) {
+                        targetPanel.prepend(dropzoneBlock); 
+                        dropzoneBlock.style.display = 'block';
+
+                        if (Dropzone.instances.length === 0) {
+                            new Dropzone("#meu-dropzone", {
+                                url: window.location.pathname + "upload-documentos/",
+                                paramName: "arquivo",
+                                headers: { 'X-CSRFToken': "{{ csrf_token }}" },
+                                clickable: true,
+                                autoProcessQueue: true,
+                                init: function() {
+                                    // Feedback visual de sucesso (Ficar Verde)
+                                    this.on("success", function(file) {
+                                        file.previewElement.classList.add("dz-success");
+                                        console.log("Sucesso: " + file.name);
+                                    });
+
+                                    // Quando terminar tudo: salvar aba e recarregar
+                                    this.on("queuecomplete", function() {
+                                        localStorage.setItem('activeTab', targetId);
+                                        setTimeout(() => {
+                                            window.location.reload();
+                                        }, 1200);
+                                    });
+
+                                    this.on("error", function(file, response) {
+                                        console.error("Erro:", response);
+                                    });
+                                }
+                            });
+                        }
                     }
                 }
             });
 
-            if (customChartBlock && targetPanel) {
-                targetPanel.innerHTML = ''; // Limpa a aba
-                targetPanel.appendChild(customChartBlock);
-                customChartBlock.style.display = 'block';
-            }
-
-            // Script para renderizar o gráfico
-            const chartCanvas = document.getElementById('radarChart');
-            if (chartCanvas && typeof Chart !== 'undefined') {
-                const ctx = chartCanvas.getContext('2d');
-                const chartData = [
-                    chartCanvas.dataset.aguia,
-                    chartCanvas.dataset.gato,
-                    chartCanvas.dataset.tubarao,
-                    chartCanvas.dataset.lobo
-                ];
-                new Chart(ctx, {
+            // RENDERIZAR GRÁFICO
+            const canvas = document.getElementById('radarChart');
+            if (canvas && typeof Chart !== 'undefined') {
+                new Chart(canvas.getContext('2d'), {
                     type: 'radar',
                     data: {
                         labels: ['Águia', 'Gato', 'Tubarão', 'Lobo'],
                         datasets: [{
-                            label: 'Percentual de Perfil (%)',
-                            data: chartData,
-                            fill: true,
+                            label: 'Perfil %',
+                            data: [canvas.dataset.aguia, canvas.dataset.gato, canvas.dataset.tubarao, canvas.dataset.lobo],
                             backgroundColor: 'rgba(54, 162, 235, 0.2)',
                             borderColor: 'rgb(54, 162, 235)',
                         }]
                     },
-                    options: { maintainAspectRatio: false, scales: { r: { suggestedMin: 0, suggestedMax: 100 } } }
+                    options: { maintainAspectRatio: false }
                 });
             }
         });
